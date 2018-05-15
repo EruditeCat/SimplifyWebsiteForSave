@@ -15,7 +15,7 @@
     'use strict';
 
 function test() {
-	// 这是一次测试TamperMonkey更新的修改。
+	// 再测试一次TamperMonkey更新的修改。
 }
 
 function csdn_blog(){
