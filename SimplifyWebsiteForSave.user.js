@@ -18,6 +18,10 @@ function test() {
 	// 再测试一次TamperMonkey更新的修改。
 }
 
+function test2() {
+	// 再测试一次TamperMonkey更新的修改。
+}
+	
 function csdn_blog(){
     $("body > div.container").siblings().remove();
     $("main:first").siblings().remove();
