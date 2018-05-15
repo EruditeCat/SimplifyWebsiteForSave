@@ -15,8 +15,7 @@
     'use strict';
 
 function test() {
-	$("body > div.page-container").siblings().remove();
-	$("body").children().children(":not(.head-container,.article-holder)").remove();
+	// 这是一次测试TamperMonkey更新的修改。
 }
 
 function csdn_blog(){
