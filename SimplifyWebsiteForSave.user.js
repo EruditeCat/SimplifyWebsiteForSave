@@ -2,8 +2,8 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.1
-// @author          author
+// @version         0.2
+// @author          EruditePig
 // @include         *
 // @exclude         file://*
 // @require         http://code.jquery.com/jquery-1.11.0.min.js
