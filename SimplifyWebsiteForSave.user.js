@@ -25,7 +25,7 @@ function test2() {
 function csdn_blog(){
     $("body > div.container").siblings().remove();
     $("main:first").siblings().remove();
-    $("article:first").siblings().remove();
+    $("div.blog-content-box").siblings().remove();
 }
 
 function jianshu(){
