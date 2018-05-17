@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.1
+// @version         0.2.2
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -81,6 +81,14 @@ function simplify(){
     alert("没有匹配的简化代码");
 }
 
+function insertJQuery(){
+    var jq = document.createElement('script');
+    jq.src = "http://code.jquery.com/jquery-1.11.0.min.js";
+    document.getElementsByTagName('head')[0].appendChild(jq);
+    jQuery.noConflict();
+}
+
 GM_registerMenuCommand("simplify", simplify, "h");
+GM_registerMenuCommand("insertJQuery", insertJQuery, "h");
 
 })();
