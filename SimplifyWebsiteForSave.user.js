@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.2
+// @version         0.2.3
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -62,14 +62,27 @@ function codeproject() {
 	$("div#AT").children(":not(.article)").remove();
 }
 
+function ruanyifeng() {
+    $("div#container").siblings().remove();
+    $("div#content").siblings().remove();
+    $("div#entry-1975").siblings().remove();
+    $("div.hentry").siblings().remove();
+    $("article.hentry").siblings().remove();
+    $("div.entry-sponsor").remove();
+}
+
 
 function simplify(){
+    if(typeof(jQuery) == 'undefined'){
+	    insertJQuery();
+    }
     var dict = {};
     dict["^(?:http(s)?:\/\/)?blog\.csdn\.net\/.+"] = "csdn_blog";      // csdn blog
     dict["^(?:http(s)?:\/\/)?daily\.zhihu\.com\/.+"] = "zhihu_daily";      // zhihu_daily
     dict["^(?:http(s)?:\/\/)?www\.jianshu\.com\/.+"] = "jianshu";      // jianshu
     dict["^(?:http(s)?:\/\/)?www\.bilibili\.com\/.+"] = "bilibili";      // bilibili
     dict["^(?:http(s)?:\/\/)?www\.codeproject\.com\/.+"] = "codeproject";      // codeproject
+    dict["^(?:http(s)?:\/\/)?www\.ruanyifeng\.com\/.+"] = "ruanyifeng";      // ruanyifeng
     for(var key in dict) {
         var reg = new RegExp(key);
         if(reg.test(document.URL)){
