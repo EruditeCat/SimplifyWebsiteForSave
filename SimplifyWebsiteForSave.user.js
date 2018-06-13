@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.6
+// @version         0.2.7
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -86,13 +86,37 @@ function siblings(node){
 }
 	
 function remove_nodes(nodes){
-    if (nodes instanceof Array) {
+    if (canAccessAsArray(nodes)) {
         for (var i=0; i<nodes.length; i++) {
             nodes[i].parentElement.removeChild(nodes[i]);
         }
     } else {
         nodes.parentElement.removeChild(nodes);
     }
+}
+	
+// assumes Array.isArray or a polyfill is available
+function canAccessAsArray(item) {
+    if (Array.isArray(item)) {
+        return true;
+    }
+    // modern browser such as IE9 / firefox / chrome etc.
+    var result = Object.prototype.toString.call(item);
+    if (result === "[object HTMLCollection]" || result === "[object NodeList]") {
+        return true;
+    }
+    //ie 6/7/8
+    if (typeof item !== "object" || !item.hasOwnProperty("length") || item.length < 0) {
+        return false;
+    }
+    // a false positive on an empty pseudo-array is OK because there won't be anything
+    // to iterate so we allow anything with .length === 0 to pass the test
+    if (item.length === 0) {
+        return true;
+    } else if (item[0] && item[0].nodeType) {
+        return true;
+    }
+    return false;        
 }
 	
 function simplify(){
