@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.7
+// @version         0.2.8
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -54,6 +54,14 @@ function zhihu_zhuanlan(){
     remove_nodes(siblings(document.getElementsByClassName("Post-Main Post-NormalMain")[0]));
     remove_nodes(document.getElementsByClassName("Recommendations-Main"));
     remove_nodes(document.getElementsByClassName("Comments-container"));
+}
+	
+function blog_chinaunix(){
+    $("body>div.box").siblings().remove();
+    $(".Blog_contain").siblings().remove();
+    $(".Blog_right1").siblings().remove();
+    $(".Blog_right1_1").siblings().remove();
+    $(".Blog_con3_3").remove();
 }
 	
 function bilibili() {
@@ -131,6 +139,7 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?www\.bilibili\.com\/.+"] = "bilibili";      // bilibili
     dict["^(?:http(s)?:\/\/)?www\.codeproject\.com\/.+"] = "codeproject";      // codeproject
     dict["^(?:http(s)?:\/\/)?www\.ruanyifeng\.com\/.+"] = "ruanyifeng";      // ruanyifeng
+    dict["^(?:http(s)?:\/\/)?blog\.chinaunix\.net\/.+"] = "blog_chinaunix";      // blog_chinaunix
     for(var key in dict) {
         var reg = new RegExp(key);
         if(reg.test(document.URL)){
