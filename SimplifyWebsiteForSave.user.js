@@ -76,7 +76,12 @@ function siblings(node){
     return ss;
 }
 	
-
+function remove_nodes(nodes){
+    for (var node in nodes) {
+        node.parentElement.removeChild(node);
+    }
+}
+	
 function simplify(){
     if(typeof(jQuery) == 'undefined'){
 	    insertJQuery();
