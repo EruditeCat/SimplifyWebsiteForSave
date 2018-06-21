@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.8
+// @version         0.2.9
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -93,7 +93,7 @@ function siblings(node){
     return ss;
 }
 	
-function remove_nodes(nodes){
+function remove(nodes){
     if (canAccessAsArray(nodes)) {
         for (var i=0; i<nodes.length; i++) {
             nodes[i].parentElement.removeChild(nodes[i]);
@@ -158,7 +158,28 @@ function insertJQuery(){
     jQuery.noConflict();
 }
 
+function insertFunc(){
+    var jq = document.createElement('script');
+    jq.type="text/javascript";
+    jq.innerHTML = `function siblings(node){
+    var ss = [].slice.call(node.parentNode.children).filter(function(v){return v!== node});
+    return ss;
+}
+	
+function remove(nodes){
+    if (canAccessAsArray(nodes)) {
+        for (var i=0; i<nodes.length; i++) {
+            nodes[i].parentElement.removeChild(nodes[i]);
+        }
+    } else {
+        nodes.parentElement.removeChild(nodes);
+    }
+}
+`;
+    document.getElementsByTagName('head')[0].appendChild(jq);
+}
 GM_registerMenuCommand("simplify", simplify, "h");
 GM_registerMenuCommand("insertJQuery", insertJQuery, "h");
+GM_registerMenuCommand("insertFunc", insertFunc, "h");
 
 })();
