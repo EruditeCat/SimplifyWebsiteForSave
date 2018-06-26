@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.10
+// @version         0.2.11
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -153,7 +153,7 @@ function simplify(){
 
 function insertJQuery(){
     var jq = document.createElement('script');
-    jq.src = "http://code.jquery.com/jquery-1.11.0.min.js";
+    jq.src = "//code.jquery.com/jquery-1.11.0.min.js";
     document.getElementsByTagName('head')[0].appendChild(jq);
     jQuery.noConflict();
 }
