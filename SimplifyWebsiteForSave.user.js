@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.11
+// @version         0.2.12
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -49,11 +49,11 @@ function zhihu_daily(){
 }
 
 function zhihu_zhuanlan(){
-    remove_nodes(siblings(document.getElementById("root")));
-    remove_nodes(siblings(document.getElementsByClassName("App-main")[0]));
-    remove_nodes(siblings(document.getElementsByClassName("Post-Main Post-NormalMain")[0]));
-    remove_nodes(document.getElementsByClassName("Recommendations-Main"));
-    remove_nodes(document.getElementsByClassName("Comments-container"));
+    remove(siblings(document.getElementById("root")));
+    remove(siblings(document.getElementsByClassName("App-main")[0]));
+    remove(siblings(document.getElementsByClassName("Post-Main Post-NormalMain")[0]));
+    remove(document.getElementsByClassName("Recommendations-Main"));
+    remove(document.getElementsByClassName("Comments-container"));
 }
 	
 function blog_chinaunix(){
