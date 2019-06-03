@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.14
+// @version         0.2.15
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -20,6 +20,14 @@ function test() {
 
 function test2() {
 	// 再测试一次TamperMonkey更新的修改。
+}
+	
+function juejin() {
+    remove(siblings(document.getElementById("juejin")));
+    remove(siblings(document.getElementsByClassName("view-container")[0]));
+    remove(siblings(document.getElementsByClassName("container main-container")[0]));
+    remove(siblings(document.getElementsByClassName("main-area article-area shadow")[0]));
+    remove(siblings(document.getElementsByClassName("article")[0]));
 }
 	
 function csdn_blog(){
@@ -147,6 +155,7 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?www\.ruanyifeng\.com\/.+"] = "ruanyifeng";      // ruanyifeng
     dict["^(?:http(s)?:\/\/)?blog\.chinaunix\.net\/.+"] = "blog_chinaunix";      // blog_chinaunix
     dict["^(?:http(s)?:\/\/)?itnext\.io\/.+"] = "itnext";      // itnext
+    dict["^(?:http(s)?:\/\/)?juejin\.im\/.+"] = "juejin";      // juejin
     for(var key in dict) {
         var reg = new RegExp(key);
         if(reg.test(document.URL)){
