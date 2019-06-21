@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.16
+// @version         0.2.17
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -22,7 +22,7 @@ function test2() {
 	// 再测试一次TamperMonkey更新的修改。
 }
 
-function vzch() {
+function vczh() {
     remove(siblings(document.getElementById("centercontent")));
     remove(document.getElementsByClassName("commentform")[0]);
 }
@@ -161,7 +161,7 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?blog\.chinaunix\.net\/.+"] = "blog_chinaunix";      // blog_chinaunix
     dict["^(?:http(s)?:\/\/)?itnext\.io\/.+"] = "itnext";      // itnext
     dict["^(?:http(s)?:\/\/)?juejin\.im\/.+"] = "juejin";      // juejin
-    dict["^(?:http(s)?:\/\/)?www\.cppblog\.com\/vzch\/.+"] = "vzch";      // vzch
+    dict["^(?:http(s)?:\/\/)?www\.cppblog\.com\/vczh\/.+"] = "vczh";      // vczh
     for(var key in dict) {
         var reg = new RegExp(key);
         if(reg.test(document.URL)){
