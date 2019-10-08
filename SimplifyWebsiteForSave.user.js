@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.17
+// @version         0.2.18
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
