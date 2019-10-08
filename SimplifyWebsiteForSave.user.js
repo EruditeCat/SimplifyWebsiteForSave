@@ -86,10 +86,8 @@ function bilibili() {
 function codeproject() {
 	$("body > div.page-background").siblings().remove();
 	$("div#A").siblings().remove();
-	$("table.container-article-parts").siblings().remove();
-	$("td.article-wing-left").remove();
-	$("td.article-wing-right").remove();
-	$("div#AT").children(":not(.article)").remove();
+	$("div.article-container-parts").siblings().remove();
+	$("div#AT").siblings().remove();
 }
 
 function ruanyifeng() {
