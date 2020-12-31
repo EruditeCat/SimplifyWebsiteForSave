@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.21
+// @version         0.2.22
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -226,8 +226,31 @@ function remove(nodes){
 `;
     document.getElementsByTagName('head')[0].appendChild(jq);
 }
-GM_registerMenuCommand("simplify", simplify, "h");
-GM_registerMenuCommand("insertJQuery", insertJQuery, "h");
-GM_registerMenuCommand("insertFunc", insertFunc, "h");
 
+// 高亮选中文字
+function highLight(){
+
+    var dr = window.getSelection().getRangeAt(0);
+    //console.log(dr);
+    var span = document.createElement("span");
+    span.style.cssText = "background-color:#f4ff00";
+    dr.surroundContents(span);
+}
+    
+// 注册键盘消息
+function doc_keyUp(e) {
+
+    if (e.altKey && e.keyCode == 88) { // Alt+X
+        highLight();
+    }
+}
+// register the handler
+document.addEventListener('keyup', doc_keyUp, false);
+	
+GM_registerMenuCommand("simplify", simplify, "s");
+GM_registerMenuCommand("insertJQuery", insertJQuery, "i");
+GM_registerMenuCommand("insertFunc", insertFunc, "i");
+GM_registerMenuCommand("highLight", highLight, "h");
+	
 })();
+
