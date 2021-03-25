@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.22
+// @version         0.2.23
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -164,6 +164,7 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?blog\.chinaunix\.net\/.+"] = "blog_chinaunix";      // blog_chinaunix
     dict["^(?:http(s)?:\/\/)?itnext\.io\/.+"] = "itnext";      // itnext
     dict["^(?:http(s)?:\/\/)?juejin\.im\/.+"] = "juejin";      // juejin
+    dict["^(?:http(s)?:\/\/)?juejin\.cn\/.+"] = "juejin";      // juejin
     dict["^(?:http(s)?:\/\/)?www\.cppblog\.com\/vczh\/.+"] = "vczh";      // vczh
     for(var key in dict) {
         var reg = new RegExp(key);
