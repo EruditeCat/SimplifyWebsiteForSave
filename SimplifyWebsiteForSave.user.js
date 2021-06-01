@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.23
+// @version         0.2.24
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -103,6 +103,18 @@ function ruanyifeng() {
     $("article.hentry").siblings().remove();
     $("div.entry-sponsor").remove();
 }
+	
+function cnblog(){
+    $("#home").siblings().remove();
+    $("#main").siblings().remove();
+    $("#topicList").siblings().remove();
+    $("#topics").siblings().remove();
+    $(".postDesc").remove();
+    $("#blog_post_info_block").remove();
+    $("#topicList .forFlow").css("margin-left","50px");
+    $("#topicList .forFlow").css("margin-right","50px");
+}
+	
 function itnext(){
     $("#container").siblings().remove();
     $("div.surface").siblings().remove();
@@ -166,6 +178,8 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?juejin\.im\/.+"] = "juejin";      // juejin
     dict["^(?:http(s)?:\/\/)?juejin\.cn\/.+"] = "juejin";      // juejin
     dict["^(?:http(s)?:\/\/)?www\.cppblog\.com\/vczh\/.+"] = "vczh";      // vczh
+    dict["^(?:http(s)?:\/\/)?www\.cnblogs\.com\/.+"] = "cnblog";      // cnblog
+
     for(var key in dict) {
         var reg = new RegExp(key);
         if(reg.test(document.URL)){
