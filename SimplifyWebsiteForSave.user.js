@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.25
+// @version         0.2.26
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -112,6 +112,7 @@ function cnblog(){
     $(".postDesc").remove();
     $("#blog_post_info_block").remove();
     $("#sideBar").remove();
+    $("#comment_form").remove();
     $("#topicList .forFlow").css("margin-left","50px");
     $("#topicList .forFlow").css("margin-right","50px");
 }
