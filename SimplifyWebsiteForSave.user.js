@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.29
+// @version         0.2.30
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -195,6 +195,68 @@ function simplify(){
     }
     alert("没有匹配的简化代码");
 }
+	
+function commonSimplify(){
+		
+	let findContentEle = ()=>{
+		let width  = document.body.getBoundingClientRect().width;
+		let height = document.body.getBoundingClientRect().height;
+
+		let el = document.body.firstElementChild;
+		let lastSelEL = undefined;
+		while (el) {
+		  let elWidth = el.getBoundingClientRect().width;
+		  let elHeight = el.getBoundingClientRect().height;
+		  if (elWidth/width > 0.55 && elHeight/height > 0.8){
+			  //console.log(el, "firstElementChild", elWidth, elHeight)
+			  lastSelEL = el;
+			  el = el.firstElementChild;
+		  }else{
+			  //console.log(el, "nextElementSibling", elWidth, elHeight)
+			  el = el.nextElementSibling;
+		  }
+		}
+		return lastSelEL;
+	}
+
+	let simplifyContent = (ele)=>{
+		let el = ele;
+		do{
+			$(el).siblings().remove()
+			el = el.parentElement
+		}while(el !== document.body)
+	}
+
+	let changeWidthToEle = (ele)=>{
+		document.body.style="padding:0;border:0;margin:0 auto;width:95%;background:rgb(255,255,255);"
+		let willShrinkEle = document.body.firstElementChild;
+		do{
+			willShrinkEle.style="padding:0;border:0;margin:0;width:100%;background:rgb(255,255,255);"
+			willShrinkEle = willShrinkEle.firstElementChild;
+		}while(willShrinkEle !== ele)
+		willShrinkEle.style="padding:0;border:0;margin:0;width:100%;background:rgb(255,255,255);"
+	}
+	
+	let clearComment = () => {
+		let commentEle = document.getElementById("blog_post_info_block");
+		if (commentEle){
+			while(true){
+				let nextEle = commentEle.nextElementSibling;
+				commentEle.remove();
+				if(nextEle){
+					commentEle = nextEle;
+				}else{
+					break;
+				}
+			}
+		}
+	}
+
+	let contentEle = findContentEle();
+	simplifyContent(contentEle);
+	changeWidthToEle(contentEle);
+	clearComment();
+}
 
 function insertJQuery(){
     var jq = document.createElement('script');
@@ -247,6 +309,7 @@ function remove(nodes){
     document.getElementsByTagName('head')[0].appendChild(jq);
 }
 
+	
 // 高亮选中文字
 function highLight(){
 
@@ -260,7 +323,7 @@ function highLight(){
 // 注册键盘消息
 hotkeys('ctrl+q,ctrl+`', function(event,handler) {
   switch(handler.key){
-    case "ctrl+q":simplify();break;
+    case "ctrl+q":commonSimplify();break;
     case "ctrl+`":highLight();break;
   }
 });
