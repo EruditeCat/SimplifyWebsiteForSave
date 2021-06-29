@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.32
+// @version         0.2.33
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -207,7 +207,7 @@ function commonSimplify(){
 		while (el) {
 		  let elWidth = el.getBoundingClientRect().width;
 		  let elHeight = el.getBoundingClientRect().height;
-		  if (elWidth/width > 0.55 && elHeight/height > 0.8){
+		  if ((elWidth*elHeight)/(width*height) > 0.4){
 			  //console.log(el, "firstElementChild", elWidth, elHeight)
 			  lastSelEle = el;
 			  el = el.firstElementChild;
