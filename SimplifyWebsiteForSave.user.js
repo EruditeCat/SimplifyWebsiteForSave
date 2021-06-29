@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.28
+// @version         0.2.29
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -258,19 +258,17 @@ function highLight(){
 }
     
 // 注册键盘消息
-function doc_keyUp(e) {
-
-    if (e.altKey && e.keyCode == 88) { // Alt+X
-        highLight();
-    }
-}
-
-
 hotkeys('ctrl+q,ctrl+`', function(event,handler) {
   switch(handler.key){
     case "ctrl+q":simplify();break;
     case "ctrl+`":highLight();break;
   }
 });
+	
+	
+GM_registerMenuCommand("simplify", simplify, "s");
+GM_registerMenuCommand("insertJQuery", insertJQuery, "i");
+GM_registerMenuCommand("insertFunc", insertFunc, "i");
+GM_registerMenuCommand("highLight", highLight, "h");
 })();
 
