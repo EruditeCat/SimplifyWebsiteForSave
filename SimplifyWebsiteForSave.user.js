@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.31
+// @version         0.2.32
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -242,10 +242,10 @@ function commonSimplify(){
 		document.body.style="padding:0;border:0;margin:0 auto;width:95%;background:rgb(255,255,255);"
 		let willShrinkEle = document.body.firstElementChild;
 		do{
-			willShrinkEle.style="padding:0;border:0;margin:0;width:100%;background:rgb(255,255,255);"
+			willShrinkEle.style="padding:0;border:0;margin:0 auto;width:100%;max-width:100%;background:rgb(255,255,255);"
 			willShrinkEle = willShrinkEle.firstElementChild;
 		}while(willShrinkEle !== ele)
-		willShrinkEle.style="padding:0;border:0;margin:0;width:100%;background:rgb(255,255,255);"
+		willShrinkEle.style="padding:0;border:0;margin:0 auto;width:100%;max-width:100%;background:rgb(255,255,255);"
 	}
 
 	let clearComment = (commentEle) => {
