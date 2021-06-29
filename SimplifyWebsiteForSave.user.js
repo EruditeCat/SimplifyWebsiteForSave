@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.30
+// @version         0.2.31
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -197,26 +197,37 @@ function simplify(){
 }
 	
 function commonSimplify(){
-		
+
 	let findContentEle = ()=>{
 		let width  = document.body.getBoundingClientRect().width;
 		let height = document.body.getBoundingClientRect().height;
 
 		let el = document.body.firstElementChild;
-		let lastSelEL = undefined;
+		let lastSelEle = undefined;
 		while (el) {
 		  let elWidth = el.getBoundingClientRect().width;
 		  let elHeight = el.getBoundingClientRect().height;
 		  if (elWidth/width > 0.55 && elHeight/height > 0.8){
 			  //console.log(el, "firstElementChild", elWidth, elHeight)
-			  lastSelEL = el;
+			  lastSelEle = el;
 			  el = el.firstElementChild;
 		  }else{
 			  //console.log(el, "nextElementSibling", elWidth, elHeight)
 			  el = el.nextElementSibling;
 		  }
 		}
-		return lastSelEL;
+
+		while(true){
+			if (lastSelEle === document.body) return lastSelEle;
+			let lastParent = lastSelEle.parentElement;
+		    let parentWidth = lastParent.getBoundingClientRect().width;
+		    let lastSelEleWidth = lastSelEle.getBoundingClientRect().width;
+			if (lastSelEleWidth/parentWidth > 0.9){
+				lastSelEle = lastParent;
+			}else{
+				return lastSelEle;
+			}
+		}
 	}
 
 	let simplifyContent = (ele)=>{
@@ -236,9 +247,8 @@ function commonSimplify(){
 		}while(willShrinkEle !== ele)
 		willShrinkEle.style="padding:0;border:0;margin:0;width:100%;background:rgb(255,255,255);"
 	}
-	
-	let clearComment = () => {
-		let commentEle = document.getElementById("blog_post_info_block");
+
+	let clearComment = (commentEle) => {
 		if (commentEle){
 			while(true){
 				let nextEle = commentEle.nextElementSibling;
@@ -252,10 +262,12 @@ function commonSimplify(){
 		}
 	}
 
+
 	let contentEle = findContentEle();
 	simplifyContent(contentEle);
 	changeWidthToEle(contentEle);
-	clearComment();
+	clearComment(document.getElementById("blog_post_info_block"));
+	clearComment(document.getElementById("blog-comments-placeholder"));
 }
 
 function insertJQuery(){
