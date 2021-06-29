@@ -2,11 +2,12 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.27
+// @version         0.2.28
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
 // @require         http://code.jquery.com/jquery-1.11.0.min.js
+// @require         https://unpkg.com/hotkeys-js/dist/hotkeys.min.js
 // @grant           GM_registerMenuCommand
 // ==/UserScript==]
 
@@ -263,13 +264,13 @@ function doc_keyUp(e) {
         highLight();
     }
 }
-// register the handler
-document.addEventListener('keyup', doc_keyUp, false);
-	
-GM_registerMenuCommand("simplify", simplify, "s");
-GM_registerMenuCommand("insertJQuery", insertJQuery, "i");
-GM_registerMenuCommand("insertFunc", insertFunc, "i");
-GM_registerMenuCommand("highLight", highLight, "h");
-	
+
+
+hotkeys('ctrl+q,ctrl+`', function(event,handler) {
+  switch(handler.key){
+    case "ctrl+q":simplify();break;
+    case "ctrl+`":highLight();break;
+  }
+});
 })();
 
