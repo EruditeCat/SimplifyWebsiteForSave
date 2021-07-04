@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.33
+// @version         0.2.34
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -196,13 +196,12 @@ function simplify(){
     alert("没有匹配的简化代码");
 }
 	
-function commonSimplify(){
+function commonSimplify(eleInput){
 
-	let findContentEle = ()=>{
+	let findContentEle = (el)=>{
 		let width  = document.body.getBoundingClientRect().width;
 		let height = document.body.getBoundingClientRect().height;
 
-		let el = document.body.firstElementChild;
 		let lastSelEle = undefined;
 		while (el) {
 		  let elWidth = el.getBoundingClientRect().width;
@@ -233,19 +232,27 @@ function commonSimplify(){
 	let simplifyContent = (ele)=>{
 		let el = ele;
 		do{
+            console.log("开始清理元素的siblings", el);
 			$(el).siblings().remove()
 			el = el.parentElement
 		}while(el !== document.body)
 	}
 
 	let changeWidthToEle = (ele)=>{
-		document.body.style="padding:0;border:0;margin:0 auto;width:95%;background:rgb(255,255,255);"
+		document.body.style="padding:0;border:0;margin:0 auto;width:85%;;"
 		let willShrinkEle = document.body.firstElementChild;
-		do{
-			willShrinkEle.style="padding:0;border:0;margin:0 auto;width:100%;max-width:100%;background:rgb(255,255,255);"
-			willShrinkEle = willShrinkEle.firstElementChild;
-		}while(willShrinkEle !== ele)
-		willShrinkEle.style="padding:0;border:0;margin:0 auto;width:100%;max-width:100%;background:rgb(255,255,255);"
+
+        while(willShrinkEle !== ele){
+            let style = "padding:0;border:0;margin:0;width:100%;display:block;"
+            if($(willShrinkEle).css('flex')) style += 'flex:none;'
+            if($(willShrinkEle).css('max-width'))style += 'max-width:none;'
+            willShrinkEle.style=style
+            willShrinkEle = willShrinkEle.firstElementChild;
+        }
+        let style = "padding:0;border:0;margin:0;width:100%;display:block;"
+        if($(willShrinkEle).css('flex')) style += 'flex:none;'
+        if($(willShrinkEle).css('max-width'))style += 'max-width:none;'
+        willShrinkEle.style=style
 	}
 
 	let clearComment = (commentEle) => {
@@ -262,13 +269,211 @@ function commonSimplify(){
 		}
 	}
 
+    let calcElemAreaRatio = (ele) => {
+		let width  = document.body.getBoundingClientRect().width;
+		let height = document.body.getBoundingClientRect().height;
+		let elWidth = ele.getBoundingClientRect().width;
+		let elHeight = ele.getBoundingClientRect().height;
+		return (elWidth*elHeight)/(width*height);
+    }
 
-	let contentEle = findContentEle();
-	simplifyContent(contentEle);
-	changeWidthToEle(contentEle);
+    let findMainEle = ()=>{
+
+        let mainEles = $('[id*=main]');
+        for(let i=0; i<mainEles.length; ++i){
+            let ratio = calcElemAreaRatio(mainEles[i]);
+            if(ratio > 0.4){
+                return mainEles[i];
+            }
+        }
+    }
+
+	let contentEle = eleInput;
+    if(!contentEle){
+        let mainEle = findMainEle();
+        console.log("初步选中了元素", mainEle);
+        contentEle = findContentEle(mainEle);
+        console.log("最终选中了元素", contentEle);
+    }
+    simplifyContent(contentEle);
+    console.log("开始改变元素style", contentEle);
+    changeWidthToEle(contentEle);
+
 	clearComment(document.getElementById("blog_post_info_block"));
 	clearComment(document.getElementById("blog-comments-placeholder"));
 }
+
+function adsad(){
+    var myExampleClickHandler = function (element) { console.log('Clicked element:', element); commonSimplify(element);}
+    var myDomOutline = DomOutline({ onClick: myExampleClickHandler });
+
+    // Start outline:
+    myDomOutline.start();
+
+}
+var DomOutline = function (options) {
+    options = options || {};
+
+    var pub = {};
+    var self = {
+        opts: {
+            namespace: options.namespace || 'DomOutline',
+            borderWidth: options.borderWidth || 2,
+            onClick: options.onClick || false,
+            filter: options.filter || false
+        },
+        keyCodes: {
+            BACKSPACE: 8,
+            ESC: 27,
+            DELETE: 46
+        },
+        active: false,
+        initialized: false,
+        elements: {}
+    };
+
+    function writeStylesheet(css) {
+        var element = document.createElement('style');
+        element.type = 'text/css';
+        document.getElementsByTagName('head')[0].appendChild(element);
+
+        if (element.styleSheet) {
+            element.styleSheet.cssText = css; // IE
+        } else {
+            element.innerHTML = css; // Non-IE
+        }
+    }
+
+    function initStylesheet() {
+        if (self.initialized !== true) {
+            var css = '' +
+                '.' + self.opts.namespace + ' {' +
+                '    background: #09c;' +
+                '    position: absolute;' +
+                '    z-index: 1000000;' +
+                '}' +
+                '.' + self.opts.namespace + '_label {' +
+                '    background: #09c;' +
+                '    border-radius: 2px;' +
+                '    color: #fff;' +
+                '    font: bold 12px/12px Helvetica, sans-serif;' +
+                '    padding: 4px 6px;' +
+                '    position: absolute;' +
+                '    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);' +
+                '    z-index: 1000001;' +
+                '}';
+
+            writeStylesheet(css);
+            self.initialized = true;
+        }
+    }
+
+    function createOutlineElements() {
+        self.elements.label = jQuery('<div></div>').addClass(self.opts.namespace + '_label').appendTo('body');
+        self.elements.top = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
+        self.elements.bottom = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
+        self.elements.left = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
+        self.elements.right = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
+    }
+
+    function removeOutlineElements() {
+        jQuery.each(self.elements, function(name, element) {
+            element.remove();
+        });
+    }
+
+    function compileLabelText(element, width, height) {
+        var label = element.tagName.toLowerCase();
+        if (element.id) {
+            label += '#' + element.id;
+        }
+        if (element.className) {
+            label += ('.' + jQuery.trim(element.className).replace(/ /g, '.')).replace(/\.\.+/g, '.');
+        }
+        return label + ' (' + Math.round(width) + 'x' + Math.round(height) + ')';
+    }
+
+    function getScrollTop() {
+        if (!self.elements.window) {
+            self.elements.window = jQuery(window);
+        }
+        return self.elements.window.scrollTop();
+    }
+
+    function updateOutlinePosition(e) {
+        if (e.target.className.indexOf(self.opts.namespace) !== -1) {
+            return;
+        }
+        if (self.opts.filter) {
+            if (!jQuery(e.target).is(self.opts.filter)) {
+                return;
+            }
+        }
+        pub.element = e.target;
+
+        var b = self.opts.borderWidth;
+        var scroll_top = getScrollTop();
+        var pos = pub.element.getBoundingClientRect();
+        var top = pos.top + scroll_top;
+
+        var label_text = compileLabelText(pub.element, pos.width, pos.height);
+        var label_top = Math.max(0, top - 20 - b, scroll_top);
+        var label_left = Math.max(0, pos.left - b);
+
+        self.elements.label.css({ top: label_top, left: label_left }).text(label_text);
+        self.elements.top.css({ top: Math.max(0, top - b), left: pos.left - b, width: pos.width + b, height: b });
+        self.elements.bottom.css({ top: top + pos.height, left: pos.left - b, width: pos.width + b, height: b });
+        self.elements.left.css({ top: top - b, left: Math.max(0, pos.left - b), width: b, height: pos.height + b });
+        self.elements.right.css({ top: top - b, left: pos.left + pos.width, width: b, height: pos.height + (b * 2) });
+    }
+
+    function stopOnEscape(e) {
+        if (e.keyCode === self.keyCodes.ESC || e.keyCode === self.keyCodes.BACKSPACE || e.keyCode === self.keyCodes.DELETE) {
+            pub.stop();
+        }
+
+        return false;
+    }
+
+    function clickHandler(e) {
+        pub.stop();
+        self.opts.onClick(pub.element);
+
+        return false;
+    }
+
+    pub.start = function () {
+        initStylesheet();
+        if (self.active !== true) {
+            self.active = true;
+            createOutlineElements();
+            jQuery('body').on('mousemove.' + self.opts.namespace, updateOutlinePosition);
+            jQuery('body').on('keyup.' + self.opts.namespace, stopOnEscape);
+            if (self.opts.onClick) {
+                setTimeout(function () {
+                    jQuery('body').on('click.' + self.opts.namespace, function(e){
+                        if (self.opts.filter) {
+                            if (!jQuery(e.target).is(self.opts.filter)) {
+                                return false;
+                            }
+                        }
+                        clickHandler.call(this, e);
+                    });
+                }, 50);
+            }
+        }
+    };
+
+    pub.stop = function () {
+        self.active = false;
+        removeOutlineElements();
+        jQuery('body').off('mousemove.' + self.opts.namespace)
+            .off('keyup.' + self.opts.namespace)
+            .off('click.' + self.opts.namespace);
+    };
+
+    return pub;
+};
 
 function insertJQuery(){
     var jq = document.createElement('script');
@@ -335,7 +540,7 @@ function highLight(){
 // 注册键盘消息
 hotkeys('ctrl+q,ctrl+`', function(event,handler) {
   switch(handler.key){
-    case "ctrl+q":commonSimplify();break;
+    case "ctrl+q":adsad();break;
     case "ctrl+`":highLight();break;
   }
 });
