@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.34
+// @version         0.2.35
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -119,6 +119,16 @@ function cnblog(){
     if ($("#mainContent").css('flex') === "0 1 880px") $("#mainContent").css('flex', '0 1 100%');
     if ($("#mainContent").css('max-width')) $("#mainContent").css('max-width', '100%');
 }
+
+function pojie52(){
+    $("#wp").siblings("div").remove();
+    $("#ct").siblings("div,form").remove();
+    $("#postlist").siblings("div,form").remove();
+    $("#postlist>div:gt(0)").remove();
+    $("#threadstamp").remove();
+    $("#postlist>div>table>tbody>tr:gt(0)").remove();
+    $(".t_fsz").siblings("").remove();
+}
 	
 function itnext(){
     $("#container").siblings().remove();
@@ -184,6 +194,7 @@ function simplify(){
     dict["^(?:http(s)?:\/\/)?juejin\.cn\/.+"] = "juejin";      // juejin
     dict["^(?:http(s)?:\/\/)?www\.cppblog\.com\/vczh\/.+"] = "vczh";      // vczh
     dict["^(?:http(s)?:\/\/)?www\.cnblogs\.com\/.+"] = "cnblog";      // cnblog
+    dict["^(?:http(s)?:\/\/)?www\.52pojie\.cn\/.+"] = "pojie52";      // 52pojie
 
     for(var key in dict) {
         var reg = new RegExp(key);
