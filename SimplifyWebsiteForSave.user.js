@@ -2,7 +2,7 @@
 // @name            简化网站以存储
 // @namespace       http://tampermonkey.net/
 // @description     Test
-// @version         0.2.35
+// @version         0.2.36
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -549,9 +549,9 @@ function highLight(){
 }
     
 // 注册键盘消息
-hotkeys('ctrl+q,ctrl+`', function(event,handler) {
+hotkeys('alt+q,ctrl+`', function(event,handler) {
   switch(handler.key){
-    case "ctrl+q":adsad();break;
+    case "alt+q":adsad();break;
     case "ctrl+`":highLight();break;
   }
 });
