@@ -5,11 +5,12 @@
 // @version         1.0.0
 // @author          EruditePig
 // @include         https://www.cnblogs.com/*
+// @include         https://juejin.cn/*
 // @exclude         file://*
 // @require         http://code.jquery.com/jquery-1.11.0.min.js
 // @require         https://unpkg.com/hotkeys-js/dist/hotkeys.min.js
 // @grant           GM_registerMenuCommand
-// @run-at document-end
+// @run-at          document-end
 // ==/UserScript==]
 
 
@@ -29,12 +30,38 @@ class Tools{
     }
 
     // 把节点的background属性删除
-    static RemoveBackground(el, includeParents = true){
+    static MakeBackgroundWhite(el, includeParents = true){
         do{
-            $(el).css({"background":'' })
+            $(el).css({"background":'rgb(255,255,255)' })
 			el = el.parentElement ? el.parentElement : undefined;
         }while(includeParents && el && el !== document)
     }
+
+    // 设置margin
+    static SetContentCenterAndLarge(el)
+    {
+        do{
+            $(el).css({
+                "margin-left":'0px','margin-right':'0px',
+                'padding-left' : '0px', 'padding-right':'0px',
+                'box-shadow' :'none',
+                'border':'none', 
+                'width':'100%', 'max-width' : 'none',
+                'display' : 'block',
+            })
+			el = el.parentElement ? el.parentElement : undefined;
+        }while(el && el !== document.body)
+        $(el).css({
+            "margin-left":'50px','margin-right':'50px',
+            'padding-left' : '0px', 'padding-right':'0px',
+            'box-shadow' :'none',
+            'border':'none', 
+            'width':'calc(100% - 100px)', 'max-width' : 'none',
+            'overflow' : 'auto',
+            'display' : 'block',
+        })
+    }
+    
 }
 
 // 特征类基类
@@ -54,6 +81,7 @@ class CSDNPattern1 extends BasePattern {
     IsMatch(){
         /*https://www.cnblogs.com/Fly-Bob/p/15336351.html
           https://www.cnblogs.com/Can-daydayup/p/12008874.html
+          https://www.cnblogs.com/cxyxz/p/15385361.html
           body -> id:top_nav
                -> id:home
                  -> id:header
@@ -74,13 +102,37 @@ class CSDNPattern1 extends BasePattern {
         // 改变id=mainContent的margin-left
         //$("#mainContent").css("margin-left", "5px")
         // 删除所有背景
-        Tools.RemoveBackground(document.getElementsByClassName("post")[0])
+        Tools.MakeBackgroundWhite(document.getElementsByClassName("post")[0])
+        Tools.SetContentCenterAndLarge(document.getElementsByClassName("post")[0])
+    }
+}
+
+class JuejinPattern1 extends BasePattern{
+    constructor(){super();}
+
+    IsMatch(){}
+
+    Simplify(){
+        
+        var juejinInterval = setInterval(_Simplify, 500);
+        function _Simplify() {
+            if (document.readyState != "complete") {
+                console.log("简化网页以存储：等待掘金加载结束");
+                return;
+            }
+            clearInterval(juejinInterval);
+
+            // 清理class=post节点的所有sibling
+            Tools.RemoveAllSiblings(document.getElementsByClassName("article-content")[0]);
+            Tools.MakeBackgroundWhite(document.getElementsByClassName("article-content")[0])
+            Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-content")[0])
+        }
     }
 }
 
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    return new CSDNPattern1();
+    return new JuejinPattern1();
 }
 
 // 基本流程
