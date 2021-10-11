@@ -90,6 +90,7 @@ class CSDNPattern1 extends BasePattern {
                    -> id:sideBar
                  -> id:footer
         */
+       return window.location.href.search(/.*www\.cnblogs\.com.*/) == 0;
     }
 
     Simplify(){
@@ -110,7 +111,9 @@ class CSDNPattern1 extends BasePattern {
 class JuejinPattern1 extends BasePattern{
     constructor(){super();}
 
-    IsMatch(){}
+    IsMatch(){
+        return window.location.href.search(/.*juejin\.cn.*/) == 0;
+    }
 
     Simplify(){
         
@@ -132,11 +135,16 @@ class JuejinPattern1 extends BasePattern{
 
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    return new JuejinPattern1();
+    let csdn1 = new CSDNPattern1();
+    let juejin = new JuejinPattern1();
+
+    if (csdn1.IsMatch()) return csdn1;
+    if (juejin.IsMatch()) return juejin;
+    return undefined;
 }
 
 // 基本流程
 let pattern = matchPattern();
-pattern.Simplify();
+if(pattern) pattern.Simplify();
 
 }());
