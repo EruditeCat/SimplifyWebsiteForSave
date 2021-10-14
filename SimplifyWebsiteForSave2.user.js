@@ -6,6 +6,7 @@
 // @author          EruditePig
 // @include         https://www.cnblogs.com/*
 // @include         https://juejin.cn/*
+// @include         https://www.codeproject.com/*
 // @exclude         file://*
 // @require         http://code.jquery.com/jquery-1.11.0.min.js
 // @require         https://unpkg.com/hotkeys-js/dist/hotkeys.min.js
@@ -69,7 +70,7 @@ class BasePattern{
     constructor(){}
 
     // 判断是否匹配当前的Pattern
-    IsMatch(){alert("子类忘记实现匹配判断函数了。");}
+    static IsMatch(){alert("子类忘记实现匹配判断函数了。"); return false;}
     // 子类都要实现的Simplify函数
     Simplify(){alert("子类忘记实现简化函数了。");}
 }
@@ -78,7 +79,7 @@ class CSDNPattern1 extends BasePattern {
     constructor(){super();}
 
     // 判断是否匹配当前的Pattern
-    IsMatch(){
+    static IsMatch(){
         /*https://www.cnblogs.com/Fly-Bob/p/15336351.html
           https://www.cnblogs.com/Can-daydayup/p/12008874.html
           https://www.cnblogs.com/cxyxz/p/15385361.html
@@ -111,7 +112,7 @@ class CSDNPattern1 extends BasePattern {
 class JuejinPattern1 extends BasePattern{
     constructor(){super();}
 
-    IsMatch(){
+    static IsMatch(){
         return window.location.href.search(/.*juejin\.cn.*/) == 0;
     }
 
@@ -133,13 +134,30 @@ class JuejinPattern1 extends BasePattern{
     }
 }
 
+class CodeProject extends BasePattern{
+    constructor(){super();}
+
+    static IsMatch(){
+        return window.location.href.search(/.*www\.codeproject\.com.*/) == 0;
+    }
+
+    Simplify(){
+        
+        Tools.RemoveAllSiblings(document.getElementsByClassName("article-container")[0]);
+        Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
+    }
+}
+
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    let csdn1 = new CSDNPattern1();
-    let juejin = new JuejinPattern1();
+    let classes = [CSDNPattern1, JuejinPattern1, CodeProject];
+    for (let i = 0; i < classes.length; i++) {
+        const patternClass = classes[i];
+        if(patternClass.IsMatch()){
+            return new patternClass();
+        }
+    }
 
-    if (csdn1.IsMatch()) return csdn1;
-    if (juejin.IsMatch()) return juejin;
     return undefined;
 }
 
