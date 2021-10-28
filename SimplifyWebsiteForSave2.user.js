@@ -143,6 +143,7 @@ class CodeProject extends BasePattern{
         
         Tools.RemoveAllSiblings(document.getElementsByClassName("article-container")[0]);
         Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
+        $(document.getElementById("ctl00_confirmError")).remove();
     }
 }
 
