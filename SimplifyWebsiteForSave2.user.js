@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.0.1
+// @version         1.0.2
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -147,9 +147,23 @@ class CodeProject extends BasePattern{
     }
 }
 
+class ZhihuDaily extends BasePattern{
+    constructor(){super();}
+
+    static IsMatch(){
+        return window.location.href.search(/.*daily\.zhihu\.com.*/) == 0;
+    }
+
+    Simplify(){
+        
+        Tools.RemoveAllSiblings(document.getElementsByClassName("DailyRichText-withTitle")[0]);
+        Tools.SetContentCenterAndLarge(document.getElementsByClassName("DailyRichText-withTitle")[0])
+        $(".view-more").remove();
+    }
+}
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    let classes = [CSDNPattern1, JuejinPattern1, CodeProject];
+    let classes = [CSDNPattern1, JuejinPattern1, CodeProject, ZhihuDaily];
     for (let i = 0; i < classes.length; i++) {
         const patternClass = classes[i];
         if(patternClass.IsMatch()){
