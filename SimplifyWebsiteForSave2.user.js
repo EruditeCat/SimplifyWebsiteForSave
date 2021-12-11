@@ -998,11 +998,12 @@ function deleteElem(){
         }
     );
 
-    hotkeys('up,down', 'deleteElemHotkey', function(event,handler) {
+    hotkeys('up,down,enter', 'deleteElemHotkey', function(event,handler) {
         event.preventDefault();
         switch(handler.key){
           case "up":myDomOutline.selectParent();break;
           case "down":myDomOutline.selectChild();break;
+          case "enter":myDomOutline.clickHandler();break;
         }
     });
     hotkeys.setScope('deleteElemHotkey');
