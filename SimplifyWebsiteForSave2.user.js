@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.0
+// @version         1.1.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -610,11 +610,8 @@ class Tools{
     }
 
     // 把节点的background属性删除
-    static MakeBackgroundWhite(el, includeParents = true){
-        do{
-            $(el).css({"background":'rgb(255,255,255)' })
-			el = el.parentElement ? el.parentElement : undefined;
-        }while(includeParents && el && el !== document)
+    static MakeBackgroundWhite(){
+      document.body.parentElement.style.backgroundColor = "white"
     }
 
     // 设置margin
@@ -683,7 +680,7 @@ class CSDNPattern1 extends BasePattern {
         // 改变id=mainContent的margin-left
         //$("#mainContent").css("margin-left", "5px")
         // 删除所有背景
-        Tools.MakeBackgroundWhite(document.getElementsByClassName("post")[0])
+        Tools.MakeBackgroundWhite()
         Tools.SetContentCenterAndLarge(document.getElementsByClassName("post")[0])
     }
 }
@@ -707,7 +704,7 @@ class JuejinPattern1 extends BasePattern{
 
             // 清理class=post节点的所有sibling
             Tools.RemoveAllSiblings(document.getElementsByClassName("article-content")[0]);
-            Tools.MakeBackgroundWhite(document.getElementsByClassName("article-content")[0])
+            Tools.MakeBackgroundWhite()
             Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-content")[0])
         }
     }
@@ -967,6 +964,7 @@ function simplifyElem(el){
             onClick: (ele)=>{
                 Tools.RemoveAllSiblings(ele);
                 Tools.SetContentCenterAndLarge(ele);
+                Tools.MakeBackgroundWhite();
                 myDomOutline.stop();
             },
         }
