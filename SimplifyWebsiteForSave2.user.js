@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.2
+// @version         1.1.3
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -611,7 +611,8 @@ class Tools{
 
     // 把节点的background属性删除
     static MakeBackgroundWhite(){
-      document.body.parentElement.style.backgroundColor = "white"
+      document.body.parentElement.style.backgroundColor = "white";
+      document.body.style.backgroundColor = "white";
     }
 
     // 设置margin
@@ -651,7 +652,7 @@ class BasePattern{
     Simplify(){alert("子类忘记实现简化函数了。");}
 }
 
-class CSDNPattern1 extends BasePattern {
+class CnblogPattern1 extends BasePattern {
     constructor(){super();}
 
     // 判断是否匹配当前的Pattern
@@ -683,6 +684,40 @@ class CSDNPattern1 extends BasePattern {
         Tools.MakeBackgroundWhite()
         Tools.SetContentCenterAndLarge(document.getElementsByClassName("post")[0])
     }
+}
+
+class CSDNPattern1 extends BasePattern {
+  constructor(){super();}
+
+  // 判断是否匹配当前的Pattern
+  static IsMatch(){
+      /*https://www.cnblogs.com/Fly-Bob/p/15336351.html
+        https://www.cnblogs.com/Can-daydayup/p/12008874.html
+        https://www.cnblogs.com/cxyxz/p/15385361.html
+        body -> id:top_nav
+             -> id:home
+               -> id:header
+               -> id:main
+                 -> id:mainContent
+                 -> id:sideBar
+               -> id:footer
+      */
+     return window.location.href.search(/.*blog\.csdn\.net.*/) == 0;
+  }
+
+  Simplify(){
+      // 清理class=post节点的所有sibling
+      Tools.RemoveAllSiblings(document.getElementsByClassName("blog-content-box")[0]);
+      // 删除id=blog_post_info_block
+      $("#blog_post_info_block").remove()
+
+
+      // 改变id=mainContent的margin-left
+      //$("#mainContent").css("margin-left", "5px")
+      // 删除所有背景
+      Tools.MakeBackgroundWhite()
+      Tools.SetContentCenterAndLarge(document.getElementsByClassName("blog-content-box")[0])
+  }
 }
 
 class JuejinPattern1 extends BasePattern{
@@ -747,7 +782,7 @@ class ZhihuDaily extends BasePattern{
 }
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    let classes = [CSDNPattern1, JuejinPattern1, CodeProject, ZhihuDaily];
+    let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily];
     for (let i = 0; i < classes.length; i++) {
         const patternClass = classes[i];
         if(patternClass.IsMatch()){
