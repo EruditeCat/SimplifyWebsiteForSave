@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.3
+// @version         1.1.4
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -896,6 +896,7 @@ var DomOutline = function (options) {
     function updateOutlinePosition(e) {
 
         pub.element = undefined;
+        pub.lastElement = undefined;
         let q = document.elementsFromPoint(e.clientX, e.clientY);
         for (let index = 0; index <q.length; index++) {
             if (typeof q[index].className == 'string' && q[index].className.indexOf(self.opts.namespace) == -1){
@@ -979,16 +980,22 @@ var DomOutline = function (options) {
     };
 
     pub.selectParent = function(){
-        if (pub.element !== undefined){
+        if (pub.element !== undefined && pub.element !== null){
+            pub.lastElement = pub.element;
             pub.element = pub.element.parentElement;
             drawSelectedElem();
         }
     }
 
     pub.selectChild = function(){
+        if (pub.lastElement !== undefined){
+          pub.element = pub.lastElement;
+          drawSelectedElem();
+          return;
+        }
         if (pub.element !== undefined && pub.element.childElementCount > 0){
-            pub.element = pub.element.children[0];
-            drawSelectedElem();
+          pub.element = pub.element.children[0];
+          drawSelectedElem();
         }
     }
 
