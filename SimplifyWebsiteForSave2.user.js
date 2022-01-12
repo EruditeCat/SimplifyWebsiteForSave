@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.4
+// @version         1.1.4.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -801,220 +801,219 @@ function highLight(){
     dr.surroundContents(span);
 }
 
-var DomOutline = function (options) {
-    options = options || {};
 
-    var pub = {};
-    var self = {
-        opts: {
-            namespace: options.namespace || 'DomOutline',
-            borderWidth: options.borderWidth || 2,
-            onClick: options.onClick || false,
-            onStop: options.onStop || false,
-            filter: options.filter || false
-        },
-        keyCodes: {
-            BACKSPACE: 8,
-            ESC: 27,
-            DELETE: 46
-        },
-        active: false,
-        initialized: false,
-        elements: {}
+class DomOutLine{
+  constructor(options){
+    this.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5); 
+    this.pub = {};
+    this.self = {
+      opts: {
+          namespace: options.namespace || 'DomOutLine'+this.id,
+          borderWidth: options.borderWidth || 2,
+          onClick: options.onClick || false,
+          onStop: options.onStop || false,
+          filter: options.filter || false,
+          clickThenStop: options.clickThenStop!=undefined ? options.clickThenStop : true,
+      },
+      keyCodes: {
+          BACKSPACE: 8,
+          ESC: 27,
+          DELETE: 46
+      },
+      active: false,
+      initialized: false,
+      elements: {}
     };
+    this.updateOutlinePositionHandler = this._updateOutlinePosition.bind(this);
+    this.stopOnEscapeHandler = this._stopOnEscape.bind(this);
+    this.onClickHandler = this.onClick.bind(this);
+  }
 
-    function writeStylesheet(css) {
-        var element = document.createElement('style');
-        element.type = 'text/css';
-        document.getElementsByTagName('head')[0].appendChild(element);
 
-        if (element.styleSheet) {
-            element.styleSheet.cssText = css; // IE
-        } else {
-            element.innerHTML = css; // Non-IE
-        }
+  _writeStylesheet(css) {
+      let element = document.createElement('style');
+      element.type = 'text/css';
+      document.getElementsByTagName('head')[0].appendChild(element);
+
+      if (element.styleSheet) {
+          element.styleSheet.cssText = css; // IE
+      } else {
+          element.innerHTML = css; // Non-IE
+      }
+  }
+
+  _initStylesheet() {
+      if (this.self.initialized !== true) {
+          let css = '' +
+              '.' + this.self.opts.namespace + ' {' +
+              '    background: #09c;' +
+              '    position: absolute;' +
+              '    z-index: 1000000;' +
+              '    opacity: 0.3;' +
+              '}' +
+              '.' + this.self.opts.namespace + '_label {' +
+              '    background: #09c;' +
+              '    border-radius: 2px;' +
+              '    color: #fff;' +
+              '    font: bold 12px/12px Helvetica, sans-serif;' +
+              '    padding: 4px 6px;' +
+              '    position: absolute;' +
+              '    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);' +
+              '    z-index: 1000001;' +
+              '}';
+
+          this._writeStylesheet(css);
+          this.self.initialized = true;
+      }
+  }
+
+  _createOutlineElements() {
+      this.self.elements.label = jQuery('<div></div>').addClass(this.self.opts.namespace + '_label').appendTo('body');
+      //this.self.elements.top = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+      //this.self.elements.bottom = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+      //this.self.elements.left = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+      //this.self.elements.right = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+      this.self.elements.body = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+  }
+
+  _removeOutlineElements() {
+      jQuery.each(this.self.elements, function(name, element) {
+          element.remove();
+      });
+  }
+
+  _compileLabelText(element, width, height) {
+      let label = element.tagName.toLowerCase();
+      if (element.id) {
+          label += '#' + element.id;
+      }
+      if (element.className) {
+          label += ('.' + jQuery.trim(element.className).replace(/ /g, '.')).replace(/\.\.+/g, '.');
+      }
+      return label + ' (' + Math.round(width) + 'x' + Math.round(height) + ')';
+  }
+
+  _getScrollTop() {
+      if (!this.self.elements.window) {
+        this.self.elements.window = jQuery(window);
+      }
+      return this.self.elements.window.scrollTop();
+  }
+
+  _updateOutlinePosition(e) {
+
+    this.pub.element = undefined;
+    this.pub.lastElement = undefined;
+    let q = document.elementsFromPoint(e.clientX, e.clientY);
+    for (let index = 0; index <q.length; index++) {
+      if (typeof q[index].className == 'string' && q[index].className.indexOf(this.self.opts.namespace) == -1){
+        this.pub.element = q[index];
+        break;
+      }
     }
-
-    function initStylesheet() {
-        if (self.initialized !== true) {
-            var css = '' +
-                '.' + self.opts.namespace + ' {' +
-                '    background: #09c;' +
-                '    position: absolute;' +
-                '    z-index: 1000000;' +
-                '    opacity: 0.3;' +
-                '}' +
-                '.' + self.opts.namespace + '_label {' +
-                '    background: #09c;' +
-                '    border-radius: 2px;' +
-                '    color: #fff;' +
-                '    font: bold 12px/12px Helvetica, sans-serif;' +
-                '    padding: 4px 6px;' +
-                '    position: absolute;' +
-                '    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);' +
-                '    z-index: 1000001;' +
-                '}';
-
-            writeStylesheet(css);
-            self.initialized = true;
-        }
+    if (this.pub.element===undefined) return;
+    if (this.self.opts.filter) {
+      if (!jQuery(this.pub.element).is(this.self.opts.filter)) {
+        return;
+      }
     }
+    //pub.element = e.target;
+    this._drawSelectedElem();
+  }
 
-    function createOutlineElements() {
-        self.elements.label = jQuery('<div></div>').addClass(self.opts.namespace + '_label').appendTo('body');
-        //self.elements.top = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
-        //self.elements.bottom = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
-        //self.elements.left = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
-        //self.elements.right = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
-        self.elements.body = jQuery('<div></div>').addClass(self.opts.namespace).appendTo('body');
-    }
+  _drawSelectedElem() {
+      let b = this.self.opts.borderWidth;
+      let scroll_top = this._getScrollTop();
+      let pos = this.pub.element.getBoundingClientRect();
+      let top = pos.top + scroll_top;
 
-    function removeOutlineElements() {
-        jQuery.each(self.elements, function(name, element) {
-            element.remove();
-        });
-    }
+      let label_text = this._compileLabelText(this.pub.element, pos.width, pos.height);
+      let label_top = Math.max(0, top - 20 - b, scroll_top);
+      let label_left = Math.max(0, pos.left - b);
 
-    function compileLabelText(element, width, height) {
-        var label = element.tagName.toLowerCase();
-        if (element.id) {
-            label += '#' + element.id;
-        }
-        if (element.className) {
-            label += ('.' + jQuery.trim(element.className).replace(/ /g, '.')).replace(/\.\.+/g, '.');
-        }
-        return label + ' (' + Math.round(width) + 'x' + Math.round(height) + ')';
-    }
+      this.self.elements.label.css({ top: label_top, left: label_left }).text(label_text);
+      this.self.elements.body.css({ top: top - b, left: pos.left, width: pos.width, height: pos.height });
+  }
 
-    function getScrollTop() {
-        if (!self.elements.window) {
-            self.elements.window = jQuery(window);
-        }
-        return self.elements.window.scrollTop();
-    }
+  _stopOnEscape(e) {
+      if (e.keyCode === this.self.keyCodes.ESC || e.keyCode === this.self.keyCodes.BACKSPACE || e.keyCode === this.self.keyCodes.DELETE) {
+          this._stop();
+          this.self.opts.onStop();
+      }
 
-    function updateOutlinePosition(e) {
+      return false;
+  }
 
-        pub.element = undefined;
-        pub.lastElement = undefined;
-        let q = document.elementsFromPoint(e.clientX, e.clientY);
-        for (let index = 0; index <q.length; index++) {
-            if (typeof q[index].className == 'string' && q[index].className.indexOf(self.opts.namespace) == -1){
-                pub.element = q[index];
-                break;
-            }
-        }
-        if (pub.element===undefined) return;
-        if (self.opts.filter) {
-            if (!jQuery(pub.element).is(self.opts.filter)) {
-                return;
-            }
-        }
-        //pub.element = e.target;
-        drawSelectedElem();
-    }
+  _stop() {
+      this.self.active = false;
+      this._removeOutlineElements();
+      document.body.removeEventListener('mousemove', this.updateOutlinePositionHandler);
+      document.body.removeEventListener('keyup', this.stopOnEscapeHandler);
+      if (this.self.opts.onClick){
+        document.body.removeEventListener('click', this.onClickHandler);
+      }
+  };
 
-    function drawSelectedElem() {
-        var b = self.opts.borderWidth;
-        var scroll_top = getScrollTop();
-        var pos = pub.element.getBoundingClientRect();
-        var top = pos.top + scroll_top;
+  selectParent(){
+      if (this.pub.element !== undefined && this.pub.element !== null){
+          this.pub.lastElement = this.pub.element;
+          this.pub.element = this.pub.element.parentElement;
+          this._drawSelectedElem();
+      }
+  }
 
-        var label_text = compileLabelText(pub.element, pos.width, pos.height);
-        var label_top = Math.max(0, top - 20 - b, scroll_top);
-        var label_left = Math.max(0, pos.left - b);
+  selectChild(){
+      if (this.pub.lastElement !== undefined){
+          this.pub.element = this.pub.lastElement;
+          this.pub.lastElement = undefined;
+          this._drawSelectedElem();
+        return;
+      }
+      if (this.pub.element !== undefined && this.pub.element.childElementCount > 0){
+          this.pub.element = this.pub.element.children[0];
+          this._drawSelectedElem();
+      }
+  }
 
-        self.elements.label.css({ top: label_top, left: label_left }).text(label_text);
-        //self.elements.top.css({ top: Math.max(0, top - b), left: pos.left - b, width: pos.width + b, height: b });
-        //self.elements.bottom.css({ top: top + pos.height, left: pos.left - b, width: pos.width + b, height: b });
-        //self.elements.left.css({ top: top - b, left: Math.max(0, pos.left - b), width: b, height: pos.height + b });
-        //self.elements.right.css({ top: top - b, left: pos.left + pos.width, width: b, height: pos.height + (b * 2) });
-        self.elements.body.css({ top: top - b, left: pos.left, width: pos.width, height: pos.height });
-    }
-
-    function stopOnEscape(e) {
-        if (e.keyCode === self.keyCodes.ESC || e.keyCode === self.keyCodes.BACKSPACE || e.keyCode === self.keyCodes.DELETE) {
-            pub.stop();
-            self.opts.onStop();
-        }
-
+  onClick(e, bStop=true) {
+    if (this.self.opts.filter) {
+      if (!jQuery(e.target).is(this.self.opts.filter)) {
         return false;
+      }
     }
+    e.preventDefault();
+    if (this.self.opts.clickThenStop == true) this._stop();
+    this.self.opts.onClick(this.pub.element);
 
-    function clickHandler(e) {
-        //pub.stop();
-        self.opts.onClick(pub.element);
+    return false;
+  }
 
-        return false;
-    }
+  start() {
+      this._initStylesheet();
+      if (this.self.active !== true) {
+          this.self.active = true;
+          this._createOutlineElements();
 
-    pub.start = function () {
-        initStylesheet();
-        if (self.active !== true) {
-            self.active = true;
-            createOutlineElements();
-            jQuery('body').on('mousemove.' + self.opts.namespace, updateOutlinePosition);
-            jQuery('body').on('keyup.' + self.opts.namespace, stopOnEscape);
-            if (self.opts.onClick) {
-                setTimeout(function () {
-                    jQuery('.'+self.opts.namespace).on('click.' + self.opts.namespace, function(e){
-                        if (self.opts.filter) {
-                            if (!jQuery(e.target).is(self.opts.filter)) {
-                                return false;
-                            }
-                        }
-                        e.preventDefault();
-                        clickHandler.call(this, e);
-                    });
-                }, 50);
-            }
-        }
-    };
-
-    pub.stop = function () {
-        self.active = false;
-        removeOutlineElements();
-        jQuery('body').off('mousemove.' + self.opts.namespace)
-            .off('keyup.' + self.opts.namespace)
-            .off('click.' + self.opts.namespace);
-    };
-
-    pub.selectParent = function(){
-        if (pub.element !== undefined && pub.element !== null){
-            pub.lastElement = pub.element;
-            pub.element = pub.element.parentElement;
-            drawSelectedElem();
-        }
-    }
-
-    pub.selectChild = function(){
-        if (pub.lastElement !== undefined){
-          pub.element = pub.lastElement;
-          drawSelectedElem();
-          return;
-        }
-        if (pub.element !== undefined && pub.element.childElementCount > 0){
-          pub.element = pub.element.children[0];
-          drawSelectedElem();
-        }
-    }
-
-    pub.clickHandler = function(){
-        clickHandler();
-    }
-    return pub;
-};
+          document.body.addEventListener('mousemove', this.updateOutlinePositionHandler);
+          document.body.addEventListener('keyup', this.stopOnEscapeHandler);
+          if (this.self.opts.onClick){
+            document.body.addEventListener('click', this.onClickHandler);
+          }
+      }
+  }
+}
 
 // 简化选中元素
 function simplifyElem(el){
-    var myDomOutline = DomOutline(
+    let myDomOutline = new DomOutLine(
         { 
             onClick: (ele)=>{
                 Tools.RemoveAllSiblings(ele);
                 Tools.SetContentCenterAndLarge(ele);
                 Tools.MakeBackgroundWhite();
-                myDomOutline.stop();
+                hotkeys.deleteScope('simplifyElemHotkey');
             },
+            clickThenStop : true,
         }
     );
     hotkeys('up,down,enter', 'simplifyElemHotkey', function(event,handler) {
@@ -1022,7 +1021,7 @@ function simplifyElem(el){
         switch(handler.key){
           case "up":myDomOutline.selectParent();break;
           case "down":myDomOutline.selectChild();break;
-          case "enter":myDomOutline.clickHandler();break;
+          case "enter":myDomOutline.onClick(event);break;
         }
     });
     hotkeys.setScope('simplifyElemHotkey');
@@ -1033,7 +1032,7 @@ function simplifyElem(el){
 // 删除选中元素
 function deleteElem(){
 
-    var myDomOutline = DomOutline(
+    let myDomOutline = new DomOutLine(
         { 
             onClick: (ele)=>{
                 ele.remove();
@@ -1041,6 +1040,7 @@ function deleteElem(){
             onStop: (ele)=>{
                 hotkeys.deleteScope('deleteElemHotkey');
             },
+            clickThenStop : false,
         }
     );
 
@@ -1049,7 +1049,7 @@ function deleteElem(){
         switch(handler.key){
           case "up":myDomOutline.selectParent();break;
           case "down":myDomOutline.selectChild();break;
-          case "enter":myDomOutline.clickHandler();break;
+          case "enter":myDomOutline.onClick(event);break;
         }
     });
     hotkeys.setScope('deleteElemHotkey');
