@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.4.1
+// @version         1.1.5.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -609,10 +609,15 @@ class Tools{
 		}while(includeParentsSiblings && el && el !== document.body)
     }
 
-    // 把节点的background属性删除
-    static MakeBackgroundWhite(){
-      document.body.parentElement.style.backgroundColor = "white";
-      document.body.style.backgroundColor = "white";
+    // 把节点及父元素的background属性删除
+    static MakeBackgroundWhite(el){       
+      do{
+        //$(el).css({"background-color":'white' })
+        $(el).css("background-image", "none");
+        $(el).css('background-color', 'white')
+        //el.style.backgroundColor  = "white";
+        el = el.parentElement ? el.parentElement : undefined;
+      }while(el && el !== document.parentElement)
     }
 
     // 设置margin
@@ -673,7 +678,8 @@ class CnblogPattern1 extends BasePattern {
 
     Simplify(){
         // 清理class=post节点的所有sibling
-        Tools.RemoveAllSiblings(document.getElementsByClassName("post")[0]);
+        let ele = document.getElementsByClassName("post")[0];
+        Tools.RemoveAllSiblings(ele);
         // 删除id=blog_post_info_block
         $("#blog_post_info_block").remove()
 
@@ -681,8 +687,8 @@ class CnblogPattern1 extends BasePattern {
         // 改变id=mainContent的margin-left
         //$("#mainContent").css("margin-left", "5px")
         // 删除所有背景
-        Tools.MakeBackgroundWhite()
-        Tools.SetContentCenterAndLarge(document.getElementsByClassName("post")[0])
+        Tools.MakeBackgroundWhite(ele)
+        Tools.SetContentCenterAndLarge(ele)
     }
 }
 
@@ -706,17 +712,28 @@ class CSDNPattern1 extends BasePattern {
   }
 
   Simplify(){
-      // 清理class=post节点的所有sibling
-      Tools.RemoveAllSiblings(document.getElementsByClassName("blog-content-box")[0]);
-      // 删除id=blog_post_info_block
-      $("#blog_post_info_block").remove()
+    
+    var simplifyInterval = setInterval(_Simplify, 500);
+    function _Simplify() {
+        if (document.readyState != "complete") {
+            console.log("简化网页以存储：等待CSDN加载结束");
+            return;
+        }
+        clearInterval(simplifyInterval);
 
-
-      // 改变id=mainContent的margin-left
-      //$("#mainContent").css("margin-left", "5px")
-      // 删除所有背景
-      Tools.MakeBackgroundWhite()
-      Tools.SetContentCenterAndLarge(document.getElementsByClassName("blog-content-box")[0])
+        let ele = document.getElementsByClassName("blog-content-box")[0]
+        // 清理class=post节点的所有sibling
+        Tools.RemoveAllSiblings(ele);
+        // 删除id=blog_post_info_block
+        $("#blog_post_info_block").remove()
+  
+  
+        // 改变id=mainContent的margin-left
+        //$("#mainContent").css("margin-left", "5px")
+        // 删除所有背景
+        Tools.MakeBackgroundWhite(ele)
+        Tools.SetContentCenterAndLarge(ele)
+    }
   }
 }
 
@@ -738,9 +755,10 @@ class JuejinPattern1 extends BasePattern{
             clearInterval(juejinInterval);
 
             // 清理class=post节点的所有sibling
-            Tools.RemoveAllSiblings(document.getElementsByClassName("article-content")[0]);
-            Tools.MakeBackgroundWhite()
-            Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-content")[0])
+            let ele = document.getElementsByClassName("article-content")[0]
+            Tools.RemoveAllSiblings(ele);
+            Tools.MakeBackgroundWhite(ele)
+            Tools.SetContentCenterAndLarge(ele)
         }
     }
 }
@@ -1010,7 +1028,7 @@ function simplifyElem(el){
             onClick: (ele)=>{
                 Tools.RemoveAllSiblings(ele);
                 Tools.SetContentCenterAndLarge(ele);
-                Tools.MakeBackgroundWhite();
+                Tools.MakeBackgroundWhite(ele);
                 hotkeys.deleteScope('simplifyElemHotkey');
             },
             clickThenStop : true,
