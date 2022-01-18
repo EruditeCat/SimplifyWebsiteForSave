@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.6.2
+// @version         1.1.7.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -795,9 +795,26 @@ class ZhihuDaily extends BasePattern{
 
     Simplify(){
         
-        Tools.RemoveAllSiblings(document.getElementsByClassName("DailyRichText-withTitle")[0]);
-        Tools.SetContentCenterAndLarge(document.getElementsByClassName("DailyRichText-withTitle")[0])
-        $(".view-more").remove();
+      let intervalCallBack = setInterval(_Simplify, 500);
+      function _Simplify() {
+          if (document.readyState != "complete") {
+              console.log("简化网页以存储：等待加载结束");
+              return;
+          }
+          clearInterval(intervalCallBack);
+
+          Tools.RemoveAllSiblings(document.getElementsByClassName("App-main")[0]);
+          Tools.SetContentCenterAndLarge(document.getElementsByClassName("App-main")[0])
+          $("div.Daily").remove();
+          $("div.DailyHeader-image").remove();
+          $("p.DailyHeader-imageSource").remove();
+          $("a.view-more").remove();
+          
+          $("header.DailyHeader").css({"background-color": "white", "height": "0"});
+          $("p.DailyHeader-title").css({"color": "black", "bottom": "auto"});
+          //$("header.DailyHeader").css("height", "none");
+      }
+
     }
 }
 // 根据各种特征判断当前网页符合哪个Pattern
