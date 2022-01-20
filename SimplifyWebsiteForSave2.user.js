@@ -817,9 +817,34 @@ class ZhihuDaily extends BasePattern{
 
     }
 }
+
+class EastMoney extends BasePattern{
+  constructor(){super();}
+
+  static IsMatch(){
+      return window.location.href.search(/https:\/\/guba\.eastmoney\.com\/news,[0-9]+,[0-9]+\.html/) == 0;
+
+  }
+
+  Simplify(){
+      
+    let intervalCallBack = setInterval(_Simplify, 500);
+    function _Simplify() {
+        if (document.readyState != "complete") {
+            console.log("简化网页以存储：等待加载结束");
+            return;
+        }
+        clearInterval(intervalCallBack);
+
+        $("#newsEditor").remove();
+    }
+
+  }
+}
+
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-    let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily];
+    let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney];
     for (let i = 0; i < classes.length; i++) {
         const patternClass = classes[i];
         if(patternClass.IsMatch()){
