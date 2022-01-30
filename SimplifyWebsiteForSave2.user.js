@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.8.1
+// @version         1.1.9.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -603,10 +603,10 @@ class Tools{
 
     // 删除所有的Sibling节点
     static RemoveAllSiblings(el, includeParentsSiblings = true){
-        do{
-			$(el).siblings().remove()
-			el = el.parentElement ? el.parentElement : undefined;
-		}while(includeParentsSiblings && el && el !== document.body)
+      do{
+        $(el).siblings(':not(style, link)').remove()
+        el = el.parentElement ? el.parentElement : undefined;
+      }while(includeParentsSiblings && el && el !== document.body)
     }
 
     // 把节点及父元素的background属性删除
@@ -837,6 +837,29 @@ class EastMoney extends BasePattern{
         clearInterval(intervalCallBack);
 
         $("#newsEditor").remove();
+    }
+
+  }
+}
+
+class WuAiPoJie extends BasePattern{
+  constructor(){super();}
+
+  static IsMatch(){
+      return window.location.href.search(/https:\/\/www\.52pojie\.cn\/.*/) == 0;
+  }
+
+  Simplify(){
+      
+    let intervalCallBack = setInterval(_Simplify, 500);
+    function _Simplify() {
+        if (document.readyState != "complete") {
+            console.log("简化网页以存储：等待加载结束");
+            return;
+        }
+        clearInterval(intervalCallBack);
+        let ele = document.querySelector("#postlist div td.t_f");
+        Tools.RemoveAllSiblings(ele);
     }
 
   }
@@ -1118,6 +1141,17 @@ function deleteElem(){
     myDomOutline.start();
 }
 
+// 延迟，靠手动点击快捷键触发简化页面
+function delayAutoSimplifyElem(){
+  let classes = [WuAiPoJie];
+  for (let i = 0; i < classes.length; i++) {
+      const patternClass = classes[i];
+      if(patternClass.IsMatch()){
+          new patternClass().Simplify();
+      }
+  }
+}
+
 // 基本流程
 let pattern = matchPattern();
 if(pattern) pattern.Simplify();
@@ -1125,10 +1159,11 @@ if(pattern) pattern.Simplify();
 
 
 // 注册键盘消息
-hotkeys('alt+q,alt+w,ctrl+`', 'all', function(event,handler) {
+hotkeys('alt+q,alt+w,alt+a,ctrl+`', 'all', function(event,handler) {
     switch(handler.key){
       case "alt+q":simplifyElem();break;
       case "alt+w":deleteElem();break;
+      case "alt+a":delayAutoSimplifyElem();break;
       case "ctrl+`":highLight();break;
     }
 });
