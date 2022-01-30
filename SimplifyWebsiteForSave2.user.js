@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.9.1
+// @version         1.1.10.1
 // @author          EruditePig
 // @include         *
 // @exclude         file://*
@@ -1152,6 +1152,23 @@ function delayAutoSimplifyElem(){
   }
 }
 
+// 这个特性需要和插件SmartToc配合，它负责添加toc，脚本负责在singleFile保存的本地html中添加js
+function addTocJumpScript(){
+  const script = document.createElement("script");
+  script.textContent = `
+    let tocEle = document.querySelector('#smarttoc');
+    if (tocEle != undefined) {
+      addEventListener('click', function(e){
+        let ele = e.target;
+        if (ele.hasAttribute('data-index')){
+          let targetEle = document.querySelector('[data-id="heading-' + ele.getAttribute('data-index') + '"]');
+          if (targetEle!=undefined)   targetEle.scrollIntoView();
+        }
+    })}
+    `; 
+  document.body.appendChild(script);
+}
+
 // 基本流程
 let pattern = matchPattern();
 if(pattern) pattern.Simplify();
@@ -1159,11 +1176,12 @@ if(pattern) pattern.Simplify();
 
 
 // 注册键盘消息
-hotkeys('alt+q,alt+w,alt+a,ctrl+`', 'all', function(event,handler) {
+hotkeys('alt+q,alt+w,alt+a,alt+s,ctrl+`', 'all', function(event,handler) {
     switch(handler.key){
       case "alt+q":simplifyElem();break;
       case "alt+w":deleteElem();break;
       case "alt+a":delayAutoSimplifyElem();break;
+      case "alt+s":addTocJumpScript();break;
       case "ctrl+`":highLight();break;
     }
 });
