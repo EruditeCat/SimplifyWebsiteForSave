@@ -5,7 +5,7 @@
 // @version         1.1.10.1
 // @author          EruditePig
 // @include         *
-// @exclude         file://*
+///////// @exclude         file://*
 // @require         http://code.jquery.com/jquery-1.11.0.min.js
 // @grant           GM_registerMenuCommand
 // @run-at          document-end
