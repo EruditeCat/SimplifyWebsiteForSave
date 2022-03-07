@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.12.1
+// @version         1.1.12.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -781,6 +781,17 @@ class CodeProject extends BasePattern{
       $(".share-list").remove();    // 删除分享部分
       $("p.small-text").remove();    // 删除底部无用信息
       $("div.bottom-promo").remove();    // 删除底部无用信息
+      document.querySelectorAll("p img").forEach(x => {
+        let src = x.getAttribute("src");
+        if (src.startsWith("data:image/gif;base64")){
+          let s = x.getAttribute("data-srcset");
+          let imgSrcArr = s.split(',');
+          let imgSrcStr = imgSrcArr[imgSrcArr.length-1];
+          let imgSrcLastWhiteSpaceIndex = imgSrcStr.lastIndexOf(' ');
+          let imgSrc = imgSrcStr.substring(0,imgSrcLastWhiteSpaceIndex);
+          x.setAttribute("src", imgSrc);
+        }
+    })
       Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
       $(document.getElementById("ctl00_confirmError")).remove();
   }
