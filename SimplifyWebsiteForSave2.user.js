@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.12.2
+// @version         1.1.12.3
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -785,11 +785,18 @@ class CodeProject extends BasePattern{
         let src = x.getAttribute("src");
         if (src.startsWith("data:image/gif;base64")){
           let s = x.getAttribute("data-srcset");
-          let imgSrcArr = s.split(',');
-          let imgSrcStr = imgSrcArr[imgSrcArr.length-1];
-          let imgSrcLastWhiteSpaceIndex = imgSrcStr.lastIndexOf(' ');
-          let imgSrc = imgSrcStr.substring(0,imgSrcLastWhiteSpaceIndex);
-          x.setAttribute("src", imgSrc);
+          if (s != null){
+            let imgSrcArr = s.split(',');
+            let imgSrcStr = imgSrcArr[imgSrcArr.length-1];
+            let imgSrcLastWhiteSpaceIndex = imgSrcStr.lastIndexOf(' ');
+            let imgSrc = imgSrcStr.substring(0,imgSrcLastWhiteSpaceIndex);
+            x.setAttribute("src", imgSrc);
+          }else{
+            let ss = x.getAttribute("data-src");
+            if (ss != null){
+              x.setAttribute("src", ss);
+            }
+          }
         }
     })
       Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
