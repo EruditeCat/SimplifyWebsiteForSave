@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.12.3
+// @version         1.1.12.4
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -777,6 +777,7 @@ class CodeProject extends BasePattern{
       $("#_MessageBoardctl00_MessageBoard").prev().prev().remove();   // 删除评论
       $("#_MessageBoardctl00_MessageBoard").prev().remove();   // 删除评论
       $("#_MessageBoardctl00_MessageBoard").remove();   // 删除评论
+      $("#ctl00_RateArticle_RatingTable").remove();   // 删除Rate评分
       $(".share-list").prev().remove();    // 删除分享部分
       $(".share-list").remove();    // 删除分享部分
       $("p.small-text").remove();    // 删除底部无用信息
