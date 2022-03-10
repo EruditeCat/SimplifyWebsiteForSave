@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.12.4
+// @version         1.1.12.5
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -755,7 +755,7 @@ class JuejinPattern1 extends BasePattern{
           clearInterval(juejinInterval);
 
           // 清理class=post节点的所有sibling
-          let ele = document.getElementsByClassName("article-content")[0]
+          let ele = document.getElementsByClassName("markdown-body")[0]
           Tools.RemoveAllSiblings(ele);
           Tools.MakeBackgroundWhite(ele)
           Tools.SetContentCenterAndLarge(ele)
