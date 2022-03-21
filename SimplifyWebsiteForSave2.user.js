@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.12.5
+// @version         1.1.13.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1214,6 +1214,19 @@ script.textContent = `
 document.body.appendChild(script);
 }
 
+// 编辑网页
+function editHtml(){
+  let isEditingHtml = "true";
+  document.body.contentEditable = isEditingHtml;
+  let handler = function(e){
+    if (e.key == "Escape"){
+      document.body.contentEditable = "false";
+      document.removeEventListener("keyup", handler);
+    }
+  };
+  document.addEventListener("keyup", handler)
+}
+
 // 基本流程
 let pattern = matchPattern();
 if(pattern) pattern.Simplify();
@@ -1221,12 +1234,13 @@ if(pattern) pattern.Simplify();
 
 
 // 注册键盘消息
-hotkeys('alt+q,alt+w,alt+a,alt+s,ctrl+`', 'all', function(event,handler) {
+hotkeys('alt+q,alt+w,alt+a,alt+s,alt+x,ctrl+`', 'all', function(event,handler) {
   switch(handler.key){
     case "alt+q":simplifyElem();break;
     case "alt+w":deleteElem();break;
     case "alt+a":delayAutoSimplifyElem();break;
     case "alt+s":addTocJumpScript();break;
+    case "alt+x":editHtml();break;
     case "ctrl+`":highLight();break;
   }
 });
