@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.13.1
+// @version         1.1.13.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -726,7 +726,8 @@ Simplify(){
       Tools.RemoveAllSiblings(ele);
       // 删除id=blog_post_info_block
       $("#blog_post_info_block").remove()
-
+      $(".article-info-box").remove()
+      $("#blogColumnPayAdvert").remove()
 
       // 改变id=mainContent的margin-left
       //$("#mainContent").css("margin-left", "5px")
