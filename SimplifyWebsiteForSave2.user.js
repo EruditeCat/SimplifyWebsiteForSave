@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.14.1
+// @version         1.1.14.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -933,6 +933,7 @@ class V2EX extends BasePattern{
         $(".fr").remove();  // 删除楼主的头像
         $(".header > h1").siblings().remove();  // 标题上不需要的元素都删了
         $(".cell > table > tbody > tr > td:nth-of-type(1)").remove(); // 删除每个回复者的头像
+        $(".ago").remove();   // 删除每个回复的时间显示
         $("#Main > div:last-of-type").remove(); // 删除页尾广告
         Tools.SetContentCenterAndLarge(ele)
         Tools.MakeBackgroundWhite(ele)
