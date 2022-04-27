@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.13.2
+// @version         1.1.14.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -911,9 +911,39 @@ Simplify(){
 }
 }
 
+class V2EX extends BasePattern{
+  constructor(){super();}
+  
+  static IsMatch(){
+      return window.location.href.search(/https:\/\/www\.v2ex\.com\/t\/.*/) == 0;
+  }
+  
+  Simplify(){
+      
+    let intervalCallBack = setInterval(_Simplify, 500);
+    function _Simplify() {
+        if (document.readyState != "complete") {
+            console.log("简化网页以存储：等待加载结束");
+            return;
+        }
+        clearInterval(intervalCallBack);
+  
+        let ele = document.querySelector("#Main");
+        Tools.RemoveAllSiblings(ele);
+        $(".fr").remove();  // 删除楼主的头像
+        $(".header > h1").siblings().remove();  // 标题上不需要的元素都删了
+        $(".cell > table > tbody > tr > td:nth-of-type(1)").remove(); // 删除每个回复者的头像
+        $("#Main > div:last-of-type").remove(); // 删除页尾广告
+        Tools.SetContentCenterAndLarge(ele)
+        Tools.MakeBackgroundWhite(ele)
+    }
+  }
+}
+
+
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-  let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney];
+  let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney, V2EX];
   for (let i = 0; i < classes.length; i++) {
       const patternClass = classes[i];
       if(patternClass.IsMatch()){
