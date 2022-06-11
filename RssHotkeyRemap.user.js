@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.2
+// @version      0.2.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -69,7 +69,9 @@
         /*不显示日经新闻的logo*/
         div.article_content p img[alt="nikkei-chinese-logo-02.jpg"],
         /*不显示小众软件论坛delogo*/
-        div.article_content p img[alt="cbd4ea4a240cf3eb8809fb647da09ba01691f6b4"]
+        div.article_content p img[alt="cbd4ea4a240cf3eb8809fb647da09ba01691f6b4"],
+        /*不显示分享按钮*/
+        a[class~="article_share"]
         {
             display:none !important;
         }
