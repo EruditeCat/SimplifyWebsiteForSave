@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.14.2
+// @version         1.1.15.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -689,6 +689,9 @@ class CnblogPattern1 extends BasePattern {
       // 删除所有背景
       Tools.MakeBackgroundWhite(ele)
       Tools.SetContentCenterAndLarge(ele)
+
+      // 修改代码的字体
+      document.styleSheets[0].insertRule('.postBody .cnblogs-markdown code.hljs.highlighter-hljs,.cnblogs_code pre,.cnblogs_code span{font-family:Consolas !important}', 0);
   }
 }
 
