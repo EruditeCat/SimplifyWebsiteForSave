@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.2.1
+// @version      0.3.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -119,4 +119,51 @@
     };
     loadCss();
 
+
+
+    // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    let observeDOM = (function(){
+        let MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+
+        return function( obj, callback ){
+            if( !obj || obj.nodeType !== 1 ) return;
+
+            if( MutationObserver ){
+                // define a new observer
+                let mutationObserver = new MutationObserver(callback)
+
+                // have the observer observe foo for changes in children
+                mutationObserver.observe( obj, { childList:true, subtree:true })
+                return mutationObserver
+            }
+
+            // browser support fallback
+            else if( window.addEventListener ){
+                obj.addEventListener('DOMNodeInserted', callback, false)
+                obj.addEventListener('DOMNodeRemoved', callback, false)
+            }
+        }
+    })()
+
+    let readerPane = document.querySelector('div[id=reader_pane]');
+
+    observeDOM(readerPane, function(m){
+        let addedNodes = [];
+        m.forEach(record => record.addedNodes.length & addedNodes.push(...record.addedNodes))
+        addedNodes.forEach(onAddArticle)
+    });
+
+    // 添加文章的回调
+    function onAddArticle(ar){
+        if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
+            let article = ar.getElementsByClassName("article_title_wrapper")[0];
+            let link = article.getElementsByTagName("a")[0];
+            let span = article.getElementsByTagName("span")[0];
+            if (link.href.includes("https://www.ndtv.com/")){
+                let group = link.href.slice(21, link.href.indexOf('/', 21));
+                span.innerText = `【${group}】`+span.innerText;
+            }
+        }
+    }
+    // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑监视文章列表变化↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 })();
