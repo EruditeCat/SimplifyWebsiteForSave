@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.15.0
+// @version         1.1.15.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -944,10 +944,43 @@ class V2EX extends BasePattern{
   }
 }
 
+class Weixin extends BasePattern{
+  constructor(){super();}
+  
+  static IsMatch(){
+      return window.location.href.search(/https:\/\/mp\.weixin\.qq\.com\/.*/) == 0;
+  }
+  
+  Simplify(){
+      
+    let intervalCallBack = setInterval(_Simplify, 500);
+    function _Simplify() {
+        if (document.readyState != "complete") {
+            console.log("简化网页以存储：等待加载结束");
+            return;
+        }
+        clearInterval(intervalCallBack);
+  
+        let ele = document.querySelector(".rich_media_area_primary_inner");
+        Tools.RemoveAllSiblings(ele);
+        Tools.SetContentCenterAndLarge(ele);
+        Tools.MakeBackgroundWhite(ele);
+
+        let title = document.querySelector("#js_name").textContent;
+        if (title.includes("土木吧")){
+          let contentEle = document.querySelector("#js_content");
+          // 先删除前面的到包含“来源”的p元素
+          while(contentEle.firstElementChild.tagName.toLowerCase() != 'p' || !contentEle.firstElementChild.innerText.includes("来源")){
+            contentEle.removeChild(contentEle.firstElementChild);
+          }
+        }
+    }
+  }
+}
 
 // 根据各种特征判断当前网页符合哪个Pattern
 function matchPattern(){
-  let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney, V2EX];
+  let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney, V2EX, Weixin];
   for (let i = 0; i < classes.length; i++) {
       const patternClass = classes[i];
       if(patternClass.IsMatch()){
