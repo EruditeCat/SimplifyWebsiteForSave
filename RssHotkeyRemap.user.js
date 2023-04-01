@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.3.0
+// @version      0.4.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -157,6 +157,17 @@
     function onAddArticle(ar){
         if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
             let article = ar.getElementsByClassName("article_title_wrapper")[0];
+            
+            // ↓↓↓↓↓改变contextmenu的行为，变成以上文章已读
+            let spanElem = document.createElement('span');
+            spanElem.className = "icon16 icon-arrow_up_big";
+            let markAboveReadElem = document.createElement('a');
+            markAboveReadElem.addEventListener("mouseup", function(event) { mark_read_direction(articleId,'above') });
+            markAboveReadElem.appendChild(spanElem);
+            let divElem = document.getElementById("ad_"+articleId);
+            divElem.prepend(markAboveReadElem);
+            // ↑↑↑↑↑改变contextmenu的行为，变成以上文章已读
+            
             let link = article.getElementsByTagName("a")[0];
             let span = article.getElementsByTagName("span")[0];
             if (link.href.includes("https://www.ndtv.com/")){
