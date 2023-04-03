@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.5.0
+// @version      0.6.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -153,28 +153,44 @@
         addedNodes.forEach(onAddArticle)
     });
 
+    // 增加以上文章已读按钮
+    function addMarkAboveReadButton(articleId){
+        let spanElem = document.createElement('span');
+        spanElem.className = "icon16 icon-arrow_up_big";
+        let markAboveReadElem = document.createElement('a');
+        markAboveReadElem.addEventListener("mouseup", function(event) { mark_read_direction(articleId,'above') });
+        markAboveReadElem.appendChild(spanElem);
+        let divElem = document.getElementById("ad_"+articleId);
+        divElem.prepend(markAboveReadElem);
+    }
+
+    // 增加后台打开文章按钮
+    function addOpenUrlBackgroundButton(articleId, articleUrl){
+        let spanElem = document.createElement('span');
+        spanElem.className = "icon16 icon-button-open";
+        let openUrlBackgroundElem = document.createElement('a');
+        openUrlBackgroundElem.addEventListener("mouseup", function(event) { open_url_background(articleUrl) });
+        openUrlBackgroundElem.appendChild(spanElem);
+        let divElem = document.getElementById("ad_"+articleId);
+        divElem.prepend(openUrlBackgroundElem);
+    }
+
     // 添加文章的回调
     function onAddArticle(ar){
         if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
             let article = ar.getElementsByClassName("article_title_wrapper")[0];
             let articleId = ar.getAttribute("data-aid");
-            // ↓↓↓↓↓改变contextmenu的行为，变成以上文章已读
-            let spanElem = document.createElement('span');
-            spanElem.className = "icon16 icon-arrow_up_big";
-            let markAboveReadElem = document.createElement('a');
-            markAboveReadElem.addEventListener("mouseup", function(event) { mark_read_direction(articleId,'above') });
-            markAboveReadElem.appendChild(spanElem);
-            let divElem = document.getElementById("ad_"+articleId);
-            divElem.prepend(markAboveReadElem);
-            // ↑↑↑↑↑改变contextmenu的行为，变成以上文章已读
+            let link = article.getElementsByTagName("a")[0].getAttribute('href');
+
+            addMarkAboveReadButton(articleId);  // 增加以上文章已读按钮
+            addOpenUrlBackgroundButton(articleId, link);   // 增加后台打开文章按钮
             
-            let link = article.getElementsByTagName("a")[0];
             let span = article.getElementsByTagName("span")[0];
             let span2 = article.getElementsByTagName("span")[1];
-            if (link.href.includes("https://www.ndtv.com/")){
-                let group = link.href.slice(21, link.href.indexOf('/', 21));
+            if (link.includes("https://www.ndtv.com/")){
+                let group = link.slice(21, link.indexOf('/', 21));
                 span.innerText = `【${group}】`+span.innerText;
-            }else if(link.href.includes("www.mohurd.gov.cn")){ // 对住建部的新闻取正文的前40个文字
+            }else if(link.includes("www.mohurd.gov.cn")){ // 对住建部的新闻取正文的前40个文字
                 let prefixIndex = span2.innerText.indexOf("发布时间：");
                 span.innerText = span2.innerText.slice(prefixIndex+27, prefixIndex+27+40);
             }
