@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.15.1
+// @version         1.1.16.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -938,6 +938,18 @@ class V2EX extends BasePattern{
         $(".cell > table > tbody > tr > td:nth-of-type(1)").remove(); // 删除每个回复者的头像
         $(".ago").remove();   // 删除每个回复的时间显示
         $("#Main > div:last-of-type").remove(); // 删除页尾广告
+        
+        // 增加楼号
+        let eles = document.querySelectorAll('[id^="r_"]')
+        for (let i = 1; i <= eles.length; i++) {
+            let tdEle = document.createElement("td");
+            tdEle.innerText = i + "#";
+            tdEle.width = "20";
+            tdEle.valign = "top";
+            tdEle.align = "left";
+            eles[i-1].querySelector("tr").prepend(tdEle);
+        }
+        
         Tools.SetContentCenterAndLarge(ele)
         Tools.MakeBackgroundWhite(ele)
     }
