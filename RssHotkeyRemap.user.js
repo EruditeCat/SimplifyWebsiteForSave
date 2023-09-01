@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.6.0
+// @version      0.7.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -187,12 +187,18 @@
             
             let span = article.getElementsByTagName("span")[0];
             let span2 = article.getElementsByTagName("span")[1];
-            if (link.includes("https://www.ndtv.com/")){
+            if (link.includes("https://www.ndtv.com/")){ // 对印度NDTV的新闻加上分组
                 let group = link.slice(21, link.indexOf('/', 21));
                 span.innerText = `【${group}】`+span.innerText;
             }else if(link.includes("www.mohurd.gov.cn")){ // 对住建部的新闻取正文的前40个文字
                 let prefixIndex = span2.innerText.indexOf("发布时间：");
                 span.innerText = span2.innerText.slice(prefixIndex+27, prefixIndex+27+40);
+            }else if(link.includes("https://www.ulapia.com/reports")){ // 对财报的新闻正文加上作者
+                let regmatch = article_contents[articleId].match(/author_name_menu.*?<span>(.*?)<\/span>/)
+                if (regmatch){
+                    let author = regmatch[1]
+                    span.innerText = `【${author}】`+span.innerText;
+                }
             }
         }
     }
