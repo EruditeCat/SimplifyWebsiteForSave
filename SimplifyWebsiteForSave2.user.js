@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.17.0
+// @version         1.1.17.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1363,7 +1363,7 @@
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
-                new patternClass().Simplify();
+                new patternClass().manualProcessHtml();
             }
         }
     }
