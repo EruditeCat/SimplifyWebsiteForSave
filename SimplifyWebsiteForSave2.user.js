@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.17.1
+// @version         1.1.17.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -929,8 +929,8 @@
                 for (let i = 0; i < oldElems.length; i++) {
                     if (oldElems[i].innerHTML.search(regex) != -1) {
                         const newItem = oldElems[i].cloneNode(true);
-                        const replaceHtml = newItem.innerHTML.replace(regex, '<a href="$1?pwd=$2">$1?pwd=$2</a>')
-                        newItem.innerHTML += "</br><b>替换为</b></br>"
+                        const replaceHtml = newItem.innerText.replace(regex, '<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
+                        newItem.innerHTML += "<hr><b>替换为</b><hr>"
                         newItem.innerHTML += replaceHtml
                         oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
                     }
