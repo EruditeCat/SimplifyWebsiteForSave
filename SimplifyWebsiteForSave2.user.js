@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       http://tampermonkey.net/
 // @description     重写的简化网站以存储
-// @version         1.1.17.2
+// @version         1.1.18.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -925,15 +925,25 @@
                 clearInterval(intervalCallBack);
 
                 const oldElems = document.getElementsByClassName("t_f");
-                const regex = /(https:\/\/pan.baidu.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*([0-9a-zA-Z]{4})/mg;
+                const regexConcatBaiduPanUrl = /(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*([0-9a-zA-Z]{4})/mg;
+                const regexExactBaiduPanUrl = String.raw`https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23}\?pwd=[0-9a-zA-Z]{4}`;
+                let regexBaiduPanUrl = new RegExp('(' + regexExactBaiduPanUrl + ')', "mg");
+                let regexBaiduPanLinkElem = new RegExp('<a.*href="(' + regexExactBaiduPanUrl + ')".*>\\1.*<\\/a>', "mg");
                 for (let i = 0; i < oldElems.length; i++) {
-                    if (oldElems[i].innerHTML.search(regex) != -1) {
+                    if (oldElems[i].innerHTML.search(regexConcatBaiduPanUrl) != -1) {
                         const newItem = oldElems[i].cloneNode(true);
-                        const replaceHtml = newItem.innerText.replace(regex, '<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
+                        const replaceHtml = newItem.innerText.replace(regexConcatBaiduPanUrl, '<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
+                        newItem.innerHTML += "<hr><b>替换为</b><hr>"
+                        newItem.innerHTML += replaceHtml
+                        oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
+                    }else if(oldElems[i].innerHTML.search(regexBaiduPanLinkElem) == -1 && oldElems[i].innerHTML.search(regexBaiduPanUrl) != -1){
+                        const newItem = oldElems[i].cloneNode(true);
+                        const replaceHtml = newItem.innerText.replace(regexBaiduPanUrl, '<a href="$1" target="_blank">$1</a>')
                         newItem.innerHTML += "<hr><b>替换为</b><hr>"
                         newItem.innerHTML += replaceHtml
                         oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
                     }
+                    
                 }
             }
         }
