@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.7.0
+// @version      0.7.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -169,7 +169,7 @@
         let spanElem = document.createElement('span');
         spanElem.className = "icon16 icon-button-open";
         let openUrlBackgroundElem = document.createElement('a');
-        openUrlBackgroundElem.addEventListener("mouseup", function(event) { open_url_background(articleUrl) });
+        openUrlBackgroundElem.addEventListener("mouseup", function(event) { open_url_background(articleUrl);mark_read(articleId); });
         openUrlBackgroundElem.appendChild(spanElem);
         let divElem = document.getElementById("ad_"+articleId);
         divElem.prepend(openUrlBackgroundElem);
