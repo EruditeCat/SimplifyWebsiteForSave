@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.19.0
+// @version         1.1.19.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -926,7 +926,7 @@
 
                 const oldElems = document.getElementsByClassName("t_f");
                 // regex匹配找到百度盘的提取码，重点是找到提取码的4个[数字+字母]，且前后不是[数字+字母]
-                const regexConcatBaiduPanUrl = /(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]/mg;
+                const regexConcatBaiduPanUrl = /(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg;
                 const regexExactBaiduPanUrl = String.raw`https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23}\?pwd=[0-9a-zA-Z]{4}`;
                 let regexBaiduPanUrl = new RegExp('(' + regexExactBaiduPanUrl + ')', "mg");
                 let regexBaiduPanLinkElem = new RegExp('<a.*href="(' + regexExactBaiduPanUrl + ')".*>\\1.*<\\/a>', "mg");
