@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.19.1
+// @version         1.1.20.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -612,6 +612,10 @@
             } while (includeParentsSiblings && el && el !== document.body)
         }
 
+        static RemoveSelfAndChildren(el){
+            el.remove()
+        }
+
         // 把节点及父元素的background属性删除
         static MakeBackgroundWhite(el) {
             do {
@@ -877,6 +881,39 @@
         }
     }
 
+    class ZhihuZhuanlan extends BasePattern
+    {
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/.*zhuanlan\.zhihu\.com.*/) == 0;
+        }
+
+        autoProcessHtml() {
+
+            let intervalCallBack = setInterval(_Simplify, 500);
+
+            function _Simplify() {
+                if (document.readyState != "complete") {
+                    console.log("简化网页以存储：等待加载结束");
+                    return;
+                }
+                clearInterval(intervalCallBack);
+
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("ColumnPageHeader-Wrapper")[0]);
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("Post-Sub Post-NormalSub")[0]);
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("Sticky RichContent-actions is-bottom")[0]);
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("CornerButtons")[0]);
+                Tools.SetContentCenterAndLarge(document.getElementsByClassName("Post-RichTextContainer")[0]);
+                Tools.SetContentCenterAndLarge(document.getElementsByClassName("css-1wq6v87")[0]);
+            }
+
+        }
+    }
+
+
     class EastMoney extends BasePattern {
         constructor() {
             super();
@@ -1080,7 +1117,7 @@
 
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
-        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, EastMoney, V2EX, Weixin, WuAiPoJie];
+        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
