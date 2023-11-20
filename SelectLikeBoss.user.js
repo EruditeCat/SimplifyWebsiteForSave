@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         SelectLikeBoss
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.0.1
 // @description  改进选择链接上文字的体验，代码是从浏览器扩展上摘出来的，但是我修改了配置，用起来更顺手
 // @author       FromWeb
+// @include         *
 /////// @match        https://www.inoreader.com/folder/News_Global
 /////// @icon         https://www.google.com/s2/favicons?sz=64&domain=inoreader.com
 // @grant        none
