@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.20.0
+// @version         1.1.20.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -613,7 +613,7 @@
         }
 
         static RemoveSelfAndChildren(el){
-            el.remove()
+            el?.remove()
         }
 
         // 把节点及父元素的background属性删除
@@ -657,6 +657,17 @@
             })
         }
 
+        static WriteStylesheet(css) {
+            let element = document.createElement('style');
+            element.type = 'text/css';
+            document.getElementsByTagName('head')[0].appendChild(element);
+
+            if (element.styleSheet) {
+                element.styleSheet.cssText = css; // IE
+            } else {
+                element.innerHTML = css; // Non-IE
+            }
+        }
     }
 
     // 特征类基类
@@ -881,8 +892,7 @@
         }
     }
 
-    class ZhihuZhuanlan extends BasePattern
-    {
+    class ZhihuZhuanlan extends BasePattern{
         constructor() {
             super();
         }
@@ -907,7 +917,8 @@
                 Tools.RemoveSelfAndChildren(document.getElementsByClassName("Sticky RichContent-actions is-bottom")[0]);
                 Tools.RemoveSelfAndChildren(document.getElementsByClassName("CornerButtons")[0]);
                 Tools.SetContentCenterAndLarge(document.getElementsByClassName("Post-RichTextContainer")[0]);
-                Tools.SetContentCenterAndLarge(document.getElementsByClassName("css-1wq6v87")[0]);
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("css-1wq6v87")?.[0]);
+                Tools.WriteStylesheet('img{width:auto!important}')
             }
 
         }
@@ -983,7 +994,7 @@
                         newItem.innerHTML += replaceHtml
                         oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
                     }
-                    
+
                 }
             }
         }
