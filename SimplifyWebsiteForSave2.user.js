@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.20.2
+// @version         1.1.20.3
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -774,6 +774,8 @@
                 // 删除所有背景
                 Tools.MakeBackgroundWhite(ele)
                 Tools.SetContentCenterAndLarge(ele)
+                // 删除login modal窗口
+                Tools.RemoveSelfAndChildren(document.getElementsByClassName("passport-login-container")?.[0]);
             }
         }
     }
