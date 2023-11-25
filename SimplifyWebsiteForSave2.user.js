@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.20.3
+// @version         1.1.21.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -976,29 +976,27 @@
                 }
                 clearInterval(intervalCallBack);
 
-                const oldElems = document.getElementsByClassName("t_f");
-                // regex匹配找到百度盘的提取码，重点是找到提取码的4个[数字+字母]，且前后不是[数字+字母]
-                const regexConcatBaiduPanUrl = /(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg;
-                const regexExactBaiduPanUrl = String.raw`https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23}\?pwd=[0-9a-zA-Z]{4}`;
-                let regexBaiduPanUrl = new RegExp('(' + regexExactBaiduPanUrl + ')', "mg");
-                let regexBaiduPanLinkElem = new RegExp('<a.*href="(' + regexExactBaiduPanUrl + ')".*>\\1.*<\\/a>', "mg");
-                for (let i = 0; i < oldElems.length; i++) {
-                    // 尝试从帖子中找到百度盘的提取码，并编进链接里
-                    if (oldElems[i].innerHTML.search(regexConcatBaiduPanUrl) != -1) {
-                        const newItem = oldElems[i].cloneNode(true);
-                        const replaceHtml = newItem.innerText.replace(regexConcatBaiduPanUrl, '<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
-                        newItem.innerHTML += "<hr><b>替换为</b><hr>"
-                        newItem.innerHTML += replaceHtml
-                        oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
-                    // 如果找到的是百度盘的分享链接带提取码的，把它变成url，而不是文字
-                    }else if(oldElems[i].innerHTML.search(regexBaiduPanLinkElem) == -1 && oldElems[i].innerHTML.search(regexBaiduPanUrl) != -1){
-                        const newItem = oldElems[i].cloneNode(true);
-                        const replaceHtml = newItem.innerText.replace(regexBaiduPanUrl, '<a href="$1" target="_blank">$1</a>')
-                        newItem.innerHTML += "<hr><b>替换为</b><hr>"
-                        newItem.innerHTML += replaceHtml
-                        oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
-                    }
+                let matchAndReplace = new Map();
+                // 尝试从帖子中找到百度盘的提取码(重点是找到提取码的4个[数字+字母]，且前后不是[数字+字母])，并编进链接里
+                matchAndReplace.set(/(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg ,'<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
+                // 如果有百度盘的链接文字，但不是<a>元素，变成<a>元素
+                matchAndReplace.set(/(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23}\?pwd=[0-9a-zA-Z]{4})/mg ,'<a href="$1" target="_blank">$1</a>')
+                // 尝试从帖子中找到阿里云的提取码，并编进链接里
+                matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/s\/[0-9a-zA-Z\-_]{11})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg ,'<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
+                // 如果有阿里云的链接文字，但不是<a>元素，变成<a>元素
+                matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/t\/[0-9a-zA-Z\-_]{20})/mg ,'<a href="$1" target="_blank">$1</a>')
 
+                const oldElems = document.getElementsByClassName("t_f");
+                for (let i = 0; i < oldElems.length; i++) {
+                    matchAndReplace.forEach (function(replaceDomElem, regexKey) {
+                        if (oldElems[i].innerHTML.search(regexKey) != -1) {
+                            const newItem = oldElems[i].cloneNode(true);
+                            const replaceHtml = newItem.innerText.replace(regexKey, replaceDomElem)
+                            newItem.innerHTML += "<hr><b>替换为</b><hr>"
+                            newItem.innerHTML += replaceHtml
+                            oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
+                        }
+                    })
                 }
             }
         }
