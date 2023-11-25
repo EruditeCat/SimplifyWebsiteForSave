@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.7.1
+// @version      0.8.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -164,6 +164,17 @@
         divElem.prepend(markAboveReadElem);
     }
 
+    // 增加ScrollUp按钮
+    function addScrollUpButton(articleId){
+        let spanElem = document.createElement('span');
+        spanElem.className = "icon16 icon-arrow_up_cornering";
+        let scrollUpElem = document.createElement('a');
+        scrollUpElem.addEventListener("mouseup", function(event) { scroll_to_article(articleId) });
+        scrollUpElem.appendChild(spanElem);
+        let divElem = document.getElementById("ad_"+articleId);
+        divElem.prepend(scrollUpElem);
+    }
+
     // 增加后台打开文章按钮
     function addOpenUrlBackgroundButton(articleId, articleUrl){
         let spanElem = document.createElement('span');
@@ -183,6 +194,7 @@
             let link = article.getElementsByTagName("a")[0].getAttribute('href');
 
             addMarkAboveReadButton(articleId);  // 增加以上文章已读按钮
+            addScrollUpButton(articleId);  // 增加ScrollUp按钮
             addOpenUrlBackgroundButton(articleId, link);   // 增加后台打开文章按钮
             
             let span = article.getElementsByTagName("span")[0];
