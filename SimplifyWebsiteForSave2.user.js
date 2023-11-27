@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.22.0
+// @version         1.1.22.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -986,7 +986,7 @@
                 // 如果有阿里云的链接文字，但不是<a>元素，变成<a>元素
                 matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/t\/[0-9a-zA-Z\-_]{20})/mg ,'<a href="$1" target="_blank">$1</a>')
                 // 如果有蓝奏云的链接文字，但不是<a>元素，变成<a>元素
-                matchAndReplace.set(/(https:\/\/wwqh\.lanzouw\.com\/[0-9a-zA-Z\-_]{12})/mg ,'<a href="$1" target="_blank">$1</a>')
+                matchAndReplace.set(/(https:\/\/ww[a-z]{2}\.lanzou[a-z]{1}\.com\/[0-9a-zA-Z\-_]{12})/mg ,'<a href="$1" target="_blank">$1</a>')
 
                 const oldElems = document.getElementsByClassName("t_f");
                 for (let i = 0; i < oldElems.length; i++) {
