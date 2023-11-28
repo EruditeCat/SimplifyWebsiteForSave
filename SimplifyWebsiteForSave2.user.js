@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.22.1
+// @version         1.1.22.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -668,6 +668,29 @@
                 element.innerHTML = css; // Non-IE
             }
         }
+
+        // 监控页面变化
+        static ObserveDOM( elem, callback )
+        {
+            let MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+            if( !elem || elem.nodeType !== 1 ) return;
+
+            if( MutationObserver ){
+                // define a new observer
+                let mutationObserver = new MutationObserver(callback)
+
+                // have the observer observe foo for changes in children
+                mutationObserver.observe( elem, { childList:true, subtree:true })
+                return mutationObserver
+            }
+
+            // browser support fallback
+            else if( window.addEventListener ){
+                elem.addEventListener('DOMNodeInserted', callback, false)
+                elem.addEventListener('DOMNodeRemoved', callback, false)
+            }
+        }
+
     }
 
     // 特征类基类
@@ -776,6 +799,18 @@
                 Tools.SetContentCenterAndLarge(ele)
                 // 删除login modal窗口
                 Tools.RemoveSelfAndChildren(document.getElementsByClassName("passport-login-container")?.[0]);
+
+                // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+                Tools.ObserveDOM(document.body, function(m){
+                    let addedNodes = [];
+                    m.forEach(record => record.addedNodes.length & addedNodes.push(...record.addedNodes))
+                    addedNodes.forEach(function(ar){
+                        if(ar.nodeName=='DIV'&&ar.className.includes("passport-login-container")){
+                            ar.remove();
+                            console.log("已删除CSDN登录框");
+                        }
+                    })
+                });
             }
         }
     }
@@ -983,8 +1018,8 @@
                 matchAndReplace.set(/(https:\/\/pan\.baidu\.com\/s\/[0-9a-zA-Z\-_]{23}\?pwd=[0-9a-zA-Z]{4})/mg ,'<a href="$1" target="_blank">$1</a>')
                 // 尝试从帖子中找到阿里云的提取码，并编进链接里
                 matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/s\/[0-9a-zA-Z\-_]{11})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg ,'<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>')
-                // 如果有阿里云的链接文字，但不是<a>元素，变成<a>元素
-                matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/t\/[0-9a-zA-Z\-_]{20})/mg ,'<a href="$1" target="_blank">$1</a>')
+                // 如果有阿里云的链接文字，但不是<a>元素，变成<a>元素,如https://www.aliyundrive.com/s/TPNfffLsk5n
+                matchAndReplace.set(/(https:\/\/www\.aliyundrive\.com\/[ts]\/[0-9a-zA-Z\-_]{11})/mg ,'<a href="$1" target="_blank">$1</a>')
                 // 如果有蓝奏云的链接文字，但不是<a>元素，变成<a>元素
                 matchAndReplace.set(/(https:\/\/ww[a-z]{2}\.lanzou[a-z]{1}\.com\/[0-9a-zA-Z\-_]{12})/mg ,'<a href="$1" target="_blank">$1</a>')
 
