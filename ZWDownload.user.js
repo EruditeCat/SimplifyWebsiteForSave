@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         ZW下载解析工具
+// @name         ZW下载解析工具-知网-万方
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  不知道能用多久，是调用了http://www.xuexi365.top/api_zw/RTVC875CY提供的接口，每天可以下载3篇文章
 // @author       XiaoM
 // @match        https://*.cnki.net/kns8s/*
@@ -41,27 +41,29 @@ document.head.appendChild(link);
 
 
 
-function download(dataFilename,dataDbname,orderid){
+function download(url,data){
 
 
-    var loadIndex = layer.msg('正在获取下载地址', {
-        icon: 16,
-        shade: 0.01
-      });
+  var loadIndex = layer.msg('正在获取下载地址', {
+      icon: 16,
+      shade: 0.11,
+      time:300000,
+      shadeClose:false
+    });
 
 
-   console.log({dataFilename,dataDbname,orderid})
+ //console.log({dataFilename,dataDbname,orderid})
 
 
-   let url="http://www.xuexi365.top/api_zw/RTVC875CY"
-   GM_xmlhttpRequest({
-       method:     "POST",
-       url:        url,
-       data:      JSON.stringify( {'dataFilename':dataFilename,'dataDbname':dataDbname,'orderId':orderid}),
-       anonymous:  true,
-       headers: {
-           "Accept": "application/json, text/javascript, */*; q=0.01",
-           "Content-Type": "application/json; charset=utf-8"
+ //let url="http://www.xuexi365.top/api_zw/RTVC875CY"
+ GM_xmlhttpRequest({
+     method:     "POST",
+     url:        url,
+     data:      data,
+     anonymous:  true,
+     headers: {
+         "Accept": "application/json, text/javascript, */*; q=0.01",
+         "Content-Type": "application/json; charset=utf-8"
 
 
        },
@@ -89,12 +91,12 @@ function download(dataFilename,dataDbname,orderid){
            if(json.data.code >0){
                layer.close(loadIndex);
 
-            layer.alert('下载地址获取成功');
-            window.open(json.data.url, "_blank");
-           }else{
-               layer.close(loadIndex);
-            layer.alert(json.data.msg);
-           }
+          layer.alert(json.data.msg);
+          window.open(json.data.url, "_blank");
+         }else{
+             layer.close(loadIndex);
+          layer.alert(json.data.msg);
+         }
 
        },
        onerror:    function (){
@@ -111,37 +113,51 @@ layui.use(function(){
 
     var bars=[];
 
-   if(location.pathname.search('kns8s')>0){
-    //查询页面
-    bars= [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
-        type: 'help',
-
-        icon: 'layui-icon-help'
-    }, {
-        type: 'download',
+ if(location.pathname.search('kns8s')>0){
+  //查询页面
+  bars= [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
+      type: 'help',
+      icon: 'layui-icon-app',
+      style: 'background-color: #ff5722'
+  }, {
+      type: 'download',
 
         icon: 'layui-icon-download-circle',
         style: 'background-color: #16baaa;'
     }]
    }else if(location.pathname.search('kcms2')>0){
 
-    //详情页面
-    bars= [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
-        type: 'help',
-
-        icon: 'layui-icon-help'
-      }, {
-        type: 'download_caj',
+  //详情页面
+  bars= [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
+      type: 'help',
+      style: 'background-color: #ff5722',
+      icon: 'layui-icon-app'
+    }, {
+      type: 'download_caj',
 
         icon: 'layui-icon-download-circle',
         style: 'background-color: #3594ff;'
       }, {
         type: 'download_pdf',
 
-        icon: 'layui-icon-download-circle',
-        style: 'background-color: #5d9e2b;'
-      }]
-   }
+      icon: 'layui-icon-download-circle',
+      style: 'background-color: #5d9e2b;'
+    }]
+ }else if(location.origin=='https://d.wanfangdata.com.cn'){
+
+  //万方
+  bars= [ { // 定义可显示的 bar 列表信息 -- v2.8.0 新增
+    type: 'help',
+    icon: 'layui-icon-app',
+    style: 'background-color: #ff5722'
+  },{
+      type: 'download_wf',
+      icon: 'layui-icon-download-circle',
+      style: 'background-color: #5d9e2b;'
+    }]
+
+
+ }
 
 
 
@@ -161,15 +177,17 @@ layui.use(function(){
       on: { // 任意事件 --  v2.8.0 新增
         mouseenter: function(type){
 
-          if(type=='help'){
-            var content = "如何使用"
-          }else if(type=='download'){
-            var content = "帮我下载"
-          }else if(type=='download_caj'){
-            var content = "下载CAJ"
-          }else if(type=='download_pdf'){
-            var content = "下载PDF"
-          }
+        if(type=='help'){
+          var content = "如何使用"
+        }else if(type=='download'){
+          var content = "帮我下载"
+        }else if(type=='download_caj'){
+          var content = "下载CAJ"
+        }else if(type=='download_pdf'){
+          var content = "下载PDF"
+        }else if(type=='download_wf'){
+          var content = "下载PDF"
+        }
 
 
           layer.tips(content, this, {
@@ -188,11 +206,25 @@ layui.use(function(){
         if(type=='help'){
 
 
-              layer.open({
-                type: 1,
-                area: ['420px', '240px'], // 宽高
-                content: '<p style="padding-left:10px">在查询页面点击下载不能选择格式</br>工具根据系统的内容可能caj也可能是pdf</br>如果需要选定则需要进入到文章的详情页面</p>'
-              });
+            // layer.open({
+            //   type: 1,
+            //   area: ['420px', '240px'], // 宽高
+            //   content: ''
+            // });
+
+
+
+            layer.open({
+              type: 1,
+              offset: 'l',
+              anim: 'slideRight', // 从左往右
+              area: ['320px', '100%'],
+              shade: 0.1,
+              shadeClose: true,
+              id: 'ID-demo-layer-direction-l',
+              content:help_content
+            });
+
 
 
           }else if(type=='download'){
@@ -229,11 +261,13 @@ layui.use(function(){
                 orderid=match[1]
             }
 
-              layer.confirm('这里下载可能是CAJ格式，需要PDF需要进入文章详情页点击按钮，确定要下载码？', {icon: 3}, function(){
-                  download(dataFilename,dataDbname,orderid)
-              }, function(){
-                 // layer.msg('点击取消的回调');
-              });
+            layer.confirm('这里下载可能是CAJ格式，需要PDF需要进入文章详情页点击按钮，确定要下载码？', {icon: 3}, function(){
+              let url="http://www.xuexi365.top/api_zw/RTVC875CY"
+              let data=JSON.stringify( {'dataFilename':dataFilename,'dataDbname':dataDbname,'orderId':orderid})
+              download(url,data)
+            }, function(){
+               // layer.msg('点击取消的回调');
+            });
 
 
 
@@ -256,17 +290,51 @@ layui.use(function(){
                 orderid=match[1]
             }
 
-            download(dataFilename,dataDbname,orderid)
+          let url="http://www.xuexi365.top/api_zw/RTVC875CY"
+          let data=JSON.stringify( {'dataFilename':dataFilename,'dataDbname':dataDbname,'orderId':orderid})
+
+          download(url,data)
 
 
-          }
+        }else if(type=='download_wf'){
+          //var downloadlink=$('.download .buttonItem').attr("href");
+          var downloadlink=$('.download').attr("href");
+          console.log(downloadlink)
+
+          GM_xmlhttpRequest({
+            method:     "HEAD",
+            url:        downloadlink,
+            anonymous:  true,
+            onload: function (res) {
+            var url =  res.finalUrl;
+            console.log(url)
+            // 解析URL参数
+            var params = new URL(url);
+            // 获取指定参数的值
+            var paramValue = params.searchParams.get("service");
+
+            console.log(paramValue);
+
+            let queryurl="http://www.xuexi365.top/api_wf/WMDP8NJ9T"
+            let data=JSON.stringify( {'url':paramValue})
+            download(queryurl,data)
+
+
+            },
+            onerror:    function (){
+                layer.close(loadIndex);
+             layer.alert('出现错误，请重试');
+            }
+        });
 
 
       }
+    }
     });
 
-    //隐藏知网原本滚动条
-    $('.fixedbar').hide();
+  //隐藏知网原本滚动条
+  $('.fixedbar').hide();
+  $('.anxs-left-bom').hide();
 
 
   });
