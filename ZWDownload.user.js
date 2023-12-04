@@ -2,7 +2,7 @@
 // @name         ZW下载解析工具-知网-万方
 // @namespace    http://tampermonkey.net/
 // @version      1.1
-// @description  不知道能用多久，是调用了http://www.xuexi365.top/api_zw/RTVC875CY提供的接口，每天可以下载3篇文章
+// @description  不知道能用多久，是调用了http://www.xuexi365.top/api_zw/RTVC875CY提供的接口，每天可以下载3篇文章，原版地址https://scriptcat.org/zh-CN/script-show-page/1397
 // @author       XiaoM
 // @match        https://*.cnki.net/kns8s/*
 // @match        https://*.cnki.net/kcms2/*
