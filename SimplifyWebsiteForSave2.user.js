@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.23.2
+// @version         1.1.24.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1194,9 +1194,44 @@
         }
     }
 
+    class Kanxue extends BasePattern{
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/bbs\.kanxue\.com\/.*/) == 0;
+        }
+
+        autoProcessHtml() {
+
+            let intervalCallBack = setInterval(_Simplify, 500);
+
+            function _Simplify() {
+                if (document.readyState != "complete") {
+                    console.log("简化网页以存储：等待加载结束");
+                    return;
+                }
+                clearInterval(intervalCallBack);
+
+                let ele = document.querySelector(".left_content");
+                Tools.RemoveAllSiblings(ele);
+                $(".position-fixed, .text-center, .collection_thumb_left").remove();
+                $(".btn, .btn-secondary, .btn-block, .xn-back, .my-3, .mx-auto").remove();
+                $("div.message > p:last").remove();
+                $("#collection_thumb").remove();
+                $("#my-3").remove();
+                $("table.table.postlist.mb-0 > tbody > tr:last").remove();
+
+                Tools.SetContentCenterAndLarge(ele)
+                Tools.MakeBackgroundWhite(ele)
+            }
+        }
+    }
+
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
-        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie];
+        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
