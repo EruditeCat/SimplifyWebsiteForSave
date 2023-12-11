@@ -1,21 +1,22 @@
 // ==UserScript==
-// @name         ZW下载解析工具-知网-万方
+// @name         学术下载解析工具-知网-万方-维普
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.2
 // @description  不知道能用多久，是调用了http://www.xuexi365.top/api_zw/RTVC875CY提供的接口，每天可以下载3篇文章，原版地址https://scriptcat.org/zh-CN/script-show-page/1397
 // @author       XiaoM
 // @match        https://*.cnki.net/kns8s/*
 // @match        https://*.cnki.net/kcms2/*
 // @match        https://d.wanfangdata.com.cn/*
+// @match        https://lib.cqvip.com/Qikan/Article/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        unsafeWindow
-// @require      https://code.jquery.com/jquery-3.6.0.min.js
+// @require      https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js
 // @require      https://unpkg.com/layui@2.8.18/dist/layui.js
 
-// @require      http://www.xuexi365.top/msg.js
 // @connect      xuexi365.top
 // @connect      wanfangdata.com.cn
 // @grant         GM_xmlhttpRequest
+// @grant        GM_getResourceText
 // @grant GM_cookie
 
 // ==/UserScript==
@@ -40,8 +41,44 @@ document.head.appendChild(link);
 
 
 // var script = document.createElement('script');
-// script.src = 'https://unpkg.com/layui@2.8.18/dist/layui.js';
+  // script.src = 'http://www.xuexi365.top/msg.js?'+Date.now();
 // document.head.appendChild(script);
+  var  msgJson="";
+  var help_content="";
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: "http://www.xuexi365.top/msg.json?"+Date.now(),
+    anonymous: true,
+    responseType :"json",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    onload: function (res) {
+      msgJson=res.response;
+      help_content=decodeURIComponent(msgJson.updata_content)+decodeURIComponent(msgJson.link_content)+decodeURIComponent(msgJson.use_content);
+      if(msgJson.msg_active!=0){
+        layer.open({
+          type: 1,
+          offset: ['16px', '16px'], // 详细可参考 offset 属性
+          id: 'ID-demo-layer-offset-1', // 防止重复弹出
+          content:'<div style="padding: 16px;">'+ msgJson.msg_content +'</div>',
+          area: '240px',
+          title:false,
+          btn: ['确定 [ 8秒后关闭 ]'],
+          time:8000,
+          anim:2,
+          //offset:'rb',
+          btnAlign: 'c', // 按钮居中
+          shade: 0, // 不显示遮罩
+          btn1: function(){
+            layer.closeAll();
+          }
+        });
+      }
+    },
+    onerror: function () {
+    }
+  });
 
 
 
@@ -79,7 +116,7 @@ function download(url,data){
                 var json=JSON.parse(res.responseText);
             }catch(err){
                 layer.close(loadIndex);
-                layer.alert("[0X86889]网络错误，可能接口出现问题，请联系管理源");
+          layer.alert("[0X86889]网络错误，请重试，如多次错误，请联系管理源");
                 return;
             }
 
@@ -87,7 +124,7 @@ function download(url,data){
                 $.isEmptyObject(json.data.code)
             }catch(err){
                 layer.close(loadIndex);
-                layer.alert("[0X83889]网络错误，可能接口出现问题，请联系管理源");
+          layer.alert("[0X83889]网络错误，请重试，如多次错误，请联系管理源");
                 return;
             }
 
@@ -119,16 +156,7 @@ layui.use(function(){
 
  if(location.pathname.search('kns8s')>0){
   //查询页面
-  bars= [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
-      type: 'help',
-      icon: 'layui-icon-app',
-      style: 'background-color: #ff5722'
-  }, {
-      type: 'download',
 
-        icon: 'layui-icon-download-circle',
-        style: 'background-color: #16baaa;'
-    }]
    }else if(location.pathname.search('kcms2')>0){
 
   //详情页面
@@ -161,6 +189,17 @@ layui.use(function(){
     }]
 
 
+    }else if (location.origin == 'https://lib.cqvip.com') {
+      //维普
+      bars = [{ // 定义可显示的 bar 列表信息 -- v2.8.0 新增
+        type: 'help',
+        icon: 'layui-icon-app',
+        style: 'background-color: #ff5722'
+      }, {
+        type: 'download_vp',
+        icon: 'layui-icon-download-circle',
+        style: 'background-color: #5d9e2b;'
+      }]
  }
 
 
@@ -190,6 +229,8 @@ layui.use(function(){
         }else if(type=='download_pdf'){
           var content = "下载PDF"
         }else if(type=='download_wf'){
+            var content = "下载PDF"
+          }else if (type == 'download_vp') {
           var content = "下载PDF"
         }
 
@@ -311,7 +352,7 @@ layui.use(function(){
             anonymous:  true,
             onload: function (res) {
             var url =  res.finalUrl;
-            console.log(url)
+              console.log("url:",url)
             // 解析URL参数
             var params = new URL(url);
             // 获取指定参数的值
@@ -319,8 +360,8 @@ layui.use(function(){
 
             console.log(paramValue);
 
-            let queryurl="http://www.xuexi365.top/api_wf/WMDP8NJ9T"
-            let data=JSON.stringify( {'url':paramValue})
+              let queryurl = "http://www.xuexi365.top/api_wf/EDIDN5D5DP"
+              let data = JSON.stringify({ 'url': downloadlink })
             download(queryurl,data)
 
 
@@ -331,7 +372,26 @@ layui.use(function(){
             }
         });
 
+        }else if (type == 'download_vp') {
+          //var downloadlink=$('.download .buttonItem').attr("href");
+          // var downloadlink = $('.download').attr("href");
+          // console.log(downloadlink)
 
+          // let queryurl = "http://www.xuexi365.top/api_vp/LDIDN0D5DP"
+          // let data = JSON.stringify({ 'id': downloadlink,'info':'' })
+          // download(queryurl, data)
+          var fullText=$('.icon-free').parent('a').attr('onclick')
+          var startIndex = fullText.indexOf("(") + "(".length;
+          var endIndex = fullText.indexOf(")", startIndex);
+          var extractedText = fullText.substring(startIndex, endIndex);
+          var str_arr= extractedText.split(',');
+          var id=str_arr[0].replace(/'/g, "");
+          var info=str_arr[1].replace(/'/g, "");
+          //console.log(id,info)
+          let queryurl = "http://www.xuexi365.top/api_vp/LDIDN0D5DP"
+          let data = JSON.stringify({ 'id': id,'info':info })
+          console.log(data)
+          download(queryurl, data)
       }
     }
     });
@@ -339,6 +399,7 @@ layui.use(function(){
   //隐藏知网原本滚动条
   $('.fixedbar').hide();
   $('.anxs-left-bom').hide();
+    $('.web-tools').hide();
 
 
   });
