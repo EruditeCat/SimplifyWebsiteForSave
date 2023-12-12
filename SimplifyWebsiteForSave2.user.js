@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.24.1
+// @version         1.1.25.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -669,6 +669,15 @@
             }
         }
 
+        // 把所有details元素设置为open状态
+        static SetAllDetailsElemsOpen(){
+            let detailElems = document.getElementsByTagName('details');
+            for(let i=0; i<detailElems.length; i++){
+                detailElems[i].open = true;
+            }
+
+        }
+
         // 监控页面变化
         static ObserveDOM( elem, callback )
         {
@@ -747,6 +756,9 @@
             Tools.MakeBackgroundWhite(ele)
             Tools.SetContentCenterAndLarge(ele)
 
+            // 把所有details元素设置为open状态
+            Tools.SetAllDetailsElemsOpen()
+
             // 修改代码的字体
             document.styleSheets[0].insertRule('.postBody .cnblogs-markdown code.hljs.highlighter-hljs,.cnblogs_code pre,.cnblogs_code span{font-family:Consolas !important}', 0);
         }
@@ -800,6 +812,10 @@
                 // 删除login modal窗口
                 Tools.RemoveSelfAndChildren(document.getElementsByClassName("passport-login-container")?.[0]);
 
+
+                // 把所有details元素设置为open状态
+                Tools.SetAllDetailsElemsOpen()
+
                 // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
                 Tools.ObserveDOM(document.body, function(m){
                     let addedNodes = [];
@@ -838,6 +854,10 @@
                 // 清理class=post节点的所有sibling
                 let ele = document.getElementsByClassName("markdown-body")[0]
                 Tools.RemoveAllSiblings(ele);
+
+                // 把所有details元素设置为open状态
+                Tools.SetAllDetailsElemsOpen()
+
                 Tools.MakeBackgroundWhite(ele)
                 Tools.SetContentCenterAndLarge(ele)
             }
@@ -883,6 +903,10 @@
                     }
                 }
             })
+
+            // 把所有details元素设置为open状态
+            Tools.SetAllDetailsElemsOpen()
+
             Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
             $(document.getElementById("ctl00_confirmError")).remove();
         }
