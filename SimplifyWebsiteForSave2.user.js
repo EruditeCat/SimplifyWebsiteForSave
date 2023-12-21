@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.25.0
+// @version         1.1.25.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -679,8 +679,7 @@
         }
 
         // 监控页面变化
-        static ObserveDOM( elem, callback )
-        {
+        static ObserveDOM( elem, callback ){
             let MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
             if( !elem || elem.nodeType !== 1 ) return;
 
@@ -758,6 +757,7 @@
 
             // 把所有details元素设置为open状态
             Tools.SetAllDetailsElemsOpen()
+            Array.from(document.getElementsByClassName("cnblogs_code_hide")).forEach(e => e.style.display = "block");
 
             // 修改代码的字体
             document.styleSheets[0].insertRule('.postBody .cnblogs-markdown code.hljs.highlighter-hljs,.cnblogs_code pre,.cnblogs_code span{font-family:Consolas !important}', 0);
