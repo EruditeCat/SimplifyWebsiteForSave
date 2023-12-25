@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.25.1
+// @version         1.1.26.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -815,6 +815,68 @@
 
                 // 把所有details元素设置为open状态
                 Tools.SetAllDetailsElemsOpen()
+
+                // 内容区开启复制，且复制了不在尾巴上增加版权说明
+                let content_views = document.querySelector("#content_views")
+                content_views.replaceWith(content_views.cloneNode(true));
+                csdn.copyright.textData = "";
+
+                // 去除不让选择的状态
+                Tools.WriteStylesheet(`
+#content_views pre,
+#content_views pre code {
+    -webkit-touch-callout: auto !important;
+    -webkit-user-select: auto !important;
+    -khtml-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    user-select: auto !important;
+}
+                `)
+
+                //自动展开代码块
+                const pres = Array.from(document.querySelectorAll('main div.blog-content-box pre.set-code-hide'))
+                const presBox = Array.from(document.querySelectorAll('.hide-preCode-box'))
+
+                pres.forEach((pre) => {
+                    pre.style.height = 'unset'
+                    pre.style.maxHeight = 'unset'
+                })
+                presBox.forEach((box) => {
+                    box.style.display = 'none'
+                })
+
+                // 让代码可以复制
+                let buttons = document.getElementsByClassName('hljs-button signin active');
+                Array.from(buttons).forEach((btn) => {
+                    // 更改标题
+                    btn.dataset.title = "复制";
+
+                    // 移除点击事件
+                    btn.setAttribute("onclick", "");
+
+                    // 克隆按钮
+                    let elClone = btn.cloneNode(true);
+
+                    // 替回按钮
+                    btn.parentNode.replaceChild(elClone, btn);
+
+                    // 重新添加点击事件
+                    elClone.addEventListener("click", (e) => {
+                        // 实现复制
+                        const parentPreBlock = e.target.closest("pre");
+                        let elements = parentPreBlock.querySelectorAll("code");
+                        let codeBlock = elements.length == 1 ? Array.prototype.slice.call(elements)[0] : Array.prototype.slice.call(elements);
+                        navigator.clipboard.writeText(codeBlock.innerText);
+
+                        e.target.dataset.title = "复制成功";
+                        setTimeout(() => {
+                            e.target.dataset.title = "复制";
+                        }, 1000);
+                        e.stopPropagation();
+                        e.preventDefault();
+                    });
+                });
 
                 // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
                 Tools.ObserveDOM(document.body, function(m){
