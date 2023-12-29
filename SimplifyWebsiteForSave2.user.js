@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.26.0
+// @version         1.1.26.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1309,7 +1309,7 @@
                 Tools.RemoveAllSiblings(ele);
                 $(".position-fixed, .text-center, .collection_thumb_left").remove();
                 $(".btn, .btn-secondary, .btn-block, .xn-back, .my-3, .mx-auto").remove();
-                $("div.message > p:last").remove();
+                $("div[isfirst='1'].message > p:last").remove();
                 $("#collection_thumb").remove();
                 $("#my-3").remove();
                 $("table.table.postlist.mb-0 > tbody > tr:last").remove();
