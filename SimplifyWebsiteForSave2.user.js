@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.26.1
+// @version         1.1.27.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1551,6 +1551,189 @@
         }
     }
 
+    class SelectElemFromBox{
+        static active = false;
+        
+        constructor(options) {
+            this.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+            this.self = {
+                opts: {
+                    namespace: options.namespace || 'SelectElemFromBox' + this.id,
+                },
+                keyCodes: {
+                    BACKSPACE: 8,
+                    ESC: 27,
+                    DELETE: 46
+                },
+                elements: {},
+                overlapElements:[],
+                context:null,
+                originPt:null,
+            };
+            this.stopOnEscapeHandler = this._stopOnEscape.bind(this);
+            this.onMouseDownHandler = this._onMouseDown.bind(this);
+            this.onMouseUpHandler = this._onMouseUp.bind(this);
+            this.onMouseMoveHandler = this._onMouseMove.bind(this);
+            this.onScrollHandler = this._onScroll.bind(this);
+            
+            this.AABB = {
+                collide: function (rect1, rect2) {
+                    return !(
+                        rect1.top > rect2.bottom ||
+                        rect1.right < rect2.left ||
+                        rect1.bottom < rect2.top ||
+                        rect1.left > rect2.right
+                    );
+                },
+                
+                overlap:function(rect1, rect2){
+                    return this.collide(rect1, rect2) && !this.inside(rect1, rect2) && !this.inside(rect2, rect1)
+                },
+                // rect2包含rect1
+                inside: function (rect1, rect2) {
+                    return (
+                        ((rect2.top <= rect1.top) && (rect1.top <= rect2.bottom)) &&
+                        ((rect2.top <= rect1.bottom) && (rect1.bottom <= rect2.bottom)) &&
+                        ((rect2.left <= rect1.left) && (rect1.left <= rect2.right)) &&
+                        ((rect2.left <= rect1.right) && (rect1.right <= rect2.right))
+                    );
+                }
+            };
+        }
+
+        _drawSelection(e){
+            this.self.context.strokeStyle = "#000";
+            this.self.context.beginPath();
+            this.self.context.rect(this.self.originPt.x, this.self.originPt.y, e.offsetX - this.self.originPt.x, e.offsetY - this.self.originPt.y); 
+            this.self.context.stroke();
+        }
+
+        
+        _clear(){
+          this.self.context.strokeStyle = "#fff";
+          this.self.context.clearRect(0, 0, this.self.context.canvas.width, this.self.context.canvas.height);
+        };
+
+        _render(e){
+            this._clear();
+            this._drawSelection(e);
+        }
+
+        _createOutlineElements() {
+            this.self.elements.body = jQuery('<div></div>').addClass(this.self.opts.namespace).css('position', 'absolute').css('left', '0').css('top', '0').appendTo('body');
+            this.self.elements.canvas = jQuery('<canvas></canvas>').addClass(this.self.opts.namespace + '_canvas').appendTo(this.self.elements.body);
+            this.self.context = this.self.elements.canvas.get(0).getContext('2d');
+
+        }
+
+        _removeOutlineElements() {
+            jQuery.each(this.self.elements, function (name, element) {
+                element.remove();
+            });
+        }
+        
+        _stopOnEscape(e) {
+            if (e.keyCode === this.self.keyCodes.ESC) {
+                this._stop();
+            }
+
+            return false;
+        }
+        
+        _stop() {
+            SelectElemFromBox.active = false;
+            this._removeOutlineElements();
+            document.body.removeEventListener('keyup', this.stopOnEscapeHandler);
+            document.removeEventListener('scroll', this.onScrollHandler);
+        };
+        
+        _onMouseDown(e){
+            this.self.originPt = {x: e.offsetX, y: e.offsetY};
+        }
+        
+        _onMouseUp(e){
+            if(this.self.originPt){
+                let selRect = new DOMRect(
+                        Math.min(this.self.originPt.x, e.offsetX)
+                      , Math.min(this.self.originPt.y, e.offsetY)
+                      , Math.max(this.self.originPt.x, e.offsetX)-Math.min(this.self.originPt.x, e.offsetX)
+                      , Math.max(this.self.originPt.y, e.offsetY)-Math.min(this.self.originPt.y, e.offsetY));
+                let isTopDown = e.offsetY > this.self.originPt.y ? true : false;
+                let parentElem = this._findRectInsideElem(selRect, window.document.body)
+                this._deleteOverlapElem(selRect, parentElem, isTopDown)
+                this._clear(e); 
+                this.self.overlapElements.forEach(e => e.remove());
+                this.self.overlapElements = [];
+                this.self.originPt = null; 
+            }
+        }
+        
+        _onMouseMove(e){
+            if(this.self.originPt){
+                this._render(e);
+            }
+        }
+        
+        _onScroll(e){
+            this.self.context.canvas.width = document.body.clientWidth;
+            this.self.context.canvas.height = document.body.clientHeight;
+        }
+        
+        _findRectInsideElem(rect, elem){
+            if(elem.children){
+                for (let i = 0; i < elem.children.length; i++) {
+                    let childElem = elem.children[i];
+                    let childElemRectRelativeToViewPoint = childElem.getBoundingClientRect();
+                    let childElemRect = new DOMRect(
+                        window.scrollX + childElemRectRelativeToViewPoint.left,
+                        window.scrollY + childElemRectRelativeToViewPoint.top,
+                        childElemRectRelativeToViewPoint.width,
+                        childElemRectRelativeToViewPoint.height,
+                    );
+                    if(this.AABB.inside(rect, childElemRect)){
+                        return this._findRectInsideElem(rect, childElem)
+                    }
+                }
+                return elem;
+            }
+        }
+        
+        _deleteOverlapElem(rect, elem, isTopDown){
+            if(elem.children){
+                let parentRect = elem.getBoundingClientRect();
+                for (let i = 0; i < elem.children.length; i++) {
+                    let childElem = elem.children[i];
+                    let childElemRectRelativeToViewPoint = childElem.getBoundingClientRect();
+                    // 避免一次删除过大的元素，一般这种元素不是想删除的
+                    if (childElemRectRelativeToViewPoint.height > 0.8*parentRect.height) continue;
+                    let childElemRect = new DOMRect(
+                        window.scrollX + childElemRectRelativeToViewPoint.left,
+                        window.scrollY + childElemRectRelativeToViewPoint.top,
+                        childElemRectRelativeToViewPoint.width,
+                        childElemRectRelativeToViewPoint.height,
+                    );
+                    if (isTopDown==true && childElemRect.top < rect.top
+                        || isTopDown==false && childElemRect.bottom > rect.bottom) continue;
+                    if (this.AABB.overlap(rect, childElemRect) || this.AABB.inside(childElemRect, rect)){
+                        this.self.overlapElements.push(childElem)
+                    }
+                }
+            }
+        }
+
+        start(){
+            if (SelectElemFromBox.active !== true) {
+                SelectElemFromBox.active = true;
+                this._createOutlineElements();
+                document.body.addEventListener('keyup', this.stopOnEscapeHandler);
+                document.addEventListener('scroll', this.onScrollHandler);
+                this.self.context.canvas.addEventListener('mousedown', this.onMouseDownHandler);
+                this.self.context.canvas.addEventListener('mouseup', this.onMouseUpHandler);
+                this.self.context.canvas.addEventListener('mousemove', this.onMouseMoveHandler);
+            }
+        }
+    }
+
     // 简化选中元素
     function simplifyElem(el) {
         let myDomOutline = new DomOutLine({
@@ -1612,6 +1795,14 @@
         myDomOutline.start();
     }
 
+    // 框选删除选中元素
+    function selectBoxDeleteElem(){
+        let myselectBox = new SelectElemFromBox({
+            
+        });
+        myselectBox.start();
+    }
+
     // 延迟，靠手动点击快捷键触发简化页面
     function delayAutoSimplifyElem() {
         let classes = [WuAiPoJie, SMZDM];
@@ -1665,7 +1856,7 @@
                 simplifyElem();
                 break;
             case "alt+w":
-                deleteElem();
+                selectBoxDeleteElem();
                 break;
             case "alt+a":
                 delayAutoSimplifyElem();
