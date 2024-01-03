@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.27.0
+// @version         1.1.27.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1120,7 +1120,7 @@
                         'reason' : "找阿里云提取码，编进链接",
                         'regex' : /(https:\/\/www\.(aliyundrive|alipan)\.com\/s\/[0-9a-zA-Z\-_]{11})[^\?][\s\S]*[^0-9a-zA-Z]([0-9a-zA-Z]{4})[^0-9a-zA-Z]*/mg,
                         'pred' : function(elem){return elem.innerHTML.search(this['regex']) != -1},
-                        'replaceElem' : '<a href="$1?pwd=$2" target="_blank">$1?pwd=$2</a>',
+                        'replaceElem' : '<a href="$1?pwd=$3" target="_blank">$1?pwd=$3</a>',
                     },
                     // 如果有阿里云的链接文字，但不是<a>元素，变成<a>元素,如
                     //https://www.aliyundrive.com/s/TPNfffLsk5n
@@ -1145,15 +1145,16 @@
 
                 const oldElems = document.getElementsByClassName("t_f");
                 for (let i = 0; i < oldElems.length; i++) {
-                    matchAndReplace.forEach (function(o) {
-                        if (o['pred'](oldElems[i])) {
+                    for (let j=0; j < matchAndReplace.length; j++){
+                        if (matchAndReplace[j]['pred'](oldElems[i])) {
                             const newItem = oldElems[i].cloneNode(true);
-                            const replaceHtml = newItem.innerText.replace(o['regex'], o['replaceElem'])
-                            newItem.innerHTML += `<hr><b>${o['reason']}</b><hr>`
+                            const replaceHtml = newItem.innerText.replace(matchAndReplace[j]['regex'], matchAndReplace[j]['replaceElem'])
+                            newItem.innerHTML += `<hr><b>${matchAndReplace[j]['reason']}</b><hr>`
                             newItem.innerHTML += replaceHtml
                             oldElems[i].parentNode.replaceChild(newItem, oldElems[i]);
+                            break;
                         }
-                    })
+                    }
                 }
             }
         }
