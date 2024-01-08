@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.27.1
+// @version         1.1.27.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1666,6 +1666,8 @@
                 this.self.overlapElements.forEach(e => e.remove());
                 this.self.overlapElements = [];
                 this.self.originPt = null; 
+                this.self.context.canvas.width = document.body.clientWidth;
+                this.self.context.canvas.height = document.body.clientHeight;
             }
         }
         
@@ -1851,12 +1853,15 @@
 
 
     // 注册键盘消息
-    hotkeys('alt+q,alt+w,alt+a,alt+s,alt+x,ctrl+`', 'all', function (event, handler) {
+    hotkeys('alt+q,alt+w,alt+z,alt+a,alt+s,alt+x,ctrl+`', 'all', function (event, handler) {
         switch (handler.key) {
             case "alt+q":
                 simplifyElem();
                 break;
             case "alt+w":
+                deleteElem();
+                break;
+            case "alt+z":
                 selectBoxDeleteElem();
                 break;
             case "alt+a":
