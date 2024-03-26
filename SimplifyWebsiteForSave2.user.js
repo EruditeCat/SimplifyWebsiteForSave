@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.27.2
+// @version         1.1.28.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1321,9 +1321,38 @@
         }
     }
 
+    class Dida extends BasePattern{
+
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/www\.dida365\.com\/.*/) == 0;
+        }
+
+        autoProcessHtml() {
+
+            let intervalCallBack = setInterval(_Simplify, 500);
+
+            function _Simplify() {
+                if (document.readyState != "complete" || $("div.matrix-container>div>div[role=button]").length != 4) {
+                    console.log("简化网页以存储：等待加载结束");
+                    return;
+                }
+                clearInterval(intervalCallBack);
+                $("div.matrix-container>div.wrapperInner_1OPls").css({gridTemplateRows : "repeat(3,minmax(185px,1fr))"})
+                $("div.matrix-container>div>div[role=button]:nth-child(1)").css({gridArea: "1 / 1 / 1 / 1"});
+                $("div.matrix-container>div>div[role=button]:nth-child(2)").css({gridArea: "1 / 2 / 4 / 2"})
+                $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "2 / 1 / 2 / 1"})
+                $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "3 / 1 / 3 / 1"})
+            }
+        }
+    }
+
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
-        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue];
+        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue, Dida];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
@@ -1554,7 +1583,7 @@
 
     class SelectElemFromBox{
         static active = false;
-        
+
         constructor(options) {
             this.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
             this.self = {
@@ -1576,7 +1605,7 @@
             this.onMouseUpHandler = this._onMouseUp.bind(this);
             this.onMouseMoveHandler = this._onMouseMove.bind(this);
             this.onScrollHandler = this._onScroll.bind(this);
-            
+
             this.AABB = {
                 collide: function (rect1, rect2) {
                     return !(
@@ -1586,7 +1615,7 @@
                         rect1.left > rect2.right
                     );
                 },
-                
+
                 overlap:function(rect1, rect2){
                     return this.collide(rect1, rect2) && !this.inside(rect1, rect2) && !this.inside(rect2, rect1)
                 },
@@ -1605,11 +1634,11 @@
         _drawSelection(e){
             this.self.context.strokeStyle = "#000";
             this.self.context.beginPath();
-            this.self.context.rect(this.self.originPt.x, this.self.originPt.y, e.offsetX - this.self.originPt.x, e.offsetY - this.self.originPt.y); 
+            this.self.context.rect(this.self.originPt.x, this.self.originPt.y, e.offsetX - this.self.originPt.x, e.offsetY - this.self.originPt.y);
             this.self.context.stroke();
         }
 
-        
+
         _clear(){
           this.self.context.strokeStyle = "#fff";
           this.self.context.clearRect(0, 0, this.self.context.canvas.width, this.self.context.canvas.height);
@@ -1632,7 +1661,7 @@
                 element.remove();
             });
         }
-        
+
         _stopOnEscape(e) {
             if (e.keyCode === this.self.keyCodes.ESC) {
                 this._stop();
@@ -1640,18 +1669,18 @@
 
             return false;
         }
-        
+
         _stop() {
             SelectElemFromBox.active = false;
             this._removeOutlineElements();
             document.body.removeEventListener('keyup', this.stopOnEscapeHandler);
             document.removeEventListener('scroll', this.onScrollHandler);
         };
-        
+
         _onMouseDown(e){
             this.self.originPt = {x: e.offsetX, y: e.offsetY};
         }
-        
+
         _onMouseUp(e){
             if(this.self.originPt){
                 let selRect = new DOMRect(
@@ -1662,26 +1691,26 @@
                 let isTopDown = e.offsetY > this.self.originPt.y ? true : false;
                 let parentElem = this._findRectInsideElem(selRect, window.document.body)
                 this._deleteOverlapElem(selRect, parentElem, isTopDown)
-                this._clear(e); 
+                this._clear(e);
                 this.self.overlapElements.forEach(e => e.remove());
                 this.self.overlapElements = [];
-                this.self.originPt = null; 
+                this.self.originPt = null;
                 this.self.context.canvas.width = document.body.clientWidth;
                 this.self.context.canvas.height = document.body.clientHeight;
             }
         }
-        
+
         _onMouseMove(e){
             if(this.self.originPt){
                 this._render(e);
             }
         }
-        
+
         _onScroll(e){
             this.self.context.canvas.width = document.body.clientWidth;
             this.self.context.canvas.height = document.body.clientHeight;
         }
-        
+
         _findRectInsideElem(rect, elem){
             if(elem.children){
                 for (let i = 0; i < elem.children.length; i++) {
@@ -1700,7 +1729,7 @@
                 return elem;
             }
         }
-        
+
         _deleteOverlapElem(rect, elem, isTopDown){
             if(elem.children){
                 let parentRect = elem.getBoundingClientRect();
@@ -1801,7 +1830,7 @@
     // 框选删除选中元素
     function selectBoxDeleteElem(){
         let myselectBox = new SelectElemFromBox({
-            
+
         });
         myselectBox.start();
     }
