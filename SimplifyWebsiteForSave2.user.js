@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.28.0
+// @version         1.1.28.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -606,6 +606,7 @@
 
         // 删除所有的Sibling节点
         static RemoveAllSiblings(el, includeParentsSiblings = true) {
+            if(el==undefined) return;
             do {
                 $(el).siblings(':not(style, link)').remove()
                 el = el.parentElement ? el.parentElement : undefined;
@@ -613,11 +614,13 @@
         }
 
         static RemoveSelfAndChildren(el){
+            if(el==undefined) return;
             el?.remove()
         }
 
         // 把节点及父元素的background属性删除
         static MakeBackgroundWhite(el) {
+            if(el==undefined) return;
             do {
                 //$(el).css({"background-color":'white' })
                 $(el).css("background-image", "none");
@@ -629,6 +632,7 @@
 
         // 设置margin
         static SetContentCenterAndLarge(el) {
+            if(el==undefined) return;
             do {
                 $(el).css({
                     "margin-left": '0px',
@@ -1516,7 +1520,9 @@
         _stopOnEscape(e) {
             if (e.keyCode === this.self.keyCodes.ESC || e.keyCode === this.self.keyCodes.BACKSPACE || e.keyCode === this.self.keyCodes.DELETE) {
                 this._stop();
-                this.self.opts.onStop();
+                if(this.self.opts.onStop){
+                    this.self.opts.onStop();
+                }
             }
 
             return false;
@@ -1767,7 +1773,7 @@
     }
 
     // 简化选中元素
-    function simplifyElem(el) {
+    function simplifyElem() {
         let myDomOutline = new DomOutLine({
             onClick: (ele) => {
                 Tools.RemoveAllSiblings(ele);
@@ -1880,8 +1886,8 @@
     let pattern = matchAutoPattern();
     if (pattern) pattern.autoProcessHtml();
 
-
     // 注册键盘消息
+    $('[accesskey]').attr('accesskey','');  // 禁用所有的accesskey，以免和hotkey冲突
     hotkeys('alt+q,alt+w,alt+z,alt+a,alt+s,alt+x,ctrl+`', 'all', function (event, handler) {
         switch (handler.key) {
             case "alt+q":
