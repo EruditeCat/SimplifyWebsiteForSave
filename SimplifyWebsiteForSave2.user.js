@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.28.2
+// @version         1.1.28.3
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
