@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.28.1
+// @version         1.1.28.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1346,10 +1346,10 @@
                 }
                 clearInterval(intervalCallBack);
                 $("div.matrix-container>div.wrapperInner_1OPls").css({gridTemplateRows : "repeat(3,minmax(185px,1fr))"})
-                $("div.matrix-container>div>div[role=button]:nth-child(1)").css({gridArea: "1 / 1 / 1 / 1"});
-                $("div.matrix-container>div>div[role=button]:nth-child(2)").css({gridArea: "1 / 2 / 4 / 2"})
-                $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "2 / 1 / 2 / 1"})
-                $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "3 / 1 / 3 / 1"})
+                $("div.matrix-container>div>div[role=button]:nth-child(1)").css({gridArea: "1 / 1 / 1 / 1"});  // 重要且紧急被覆盖
+                $("div.matrix-container>div>div[role=button]:nth-child(2)").css({gridArea: "1 / 2 / 4 / 2"})   // 重要不紧急占据整个第2列
+                $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "1 / 1 / 2 / 1"})   // 不重要紧急占一行
+                $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "2 / 1 / 4 / 1"})   // 不重要不紧急占二行
             }
         }
     }
