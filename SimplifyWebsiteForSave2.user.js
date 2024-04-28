@@ -1350,6 +1350,7 @@
                 $("div.matrix-container>div>div[role=button]:nth-child(2)").css({gridArea: "1 / 2 / 4 / 2"})   // 重要不紧急占据整个第2列
                 $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "1 / 1 / 2 / 1"})   // 不重要紧急占一行
                 $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "2 / 1 / 4 / 1"})   // 不重要不紧急占二行
+                $("span.duedate-today").parents('li').css({backgroundColor: "#ff000052"})                      // “今天”底色高亮
             }
         }
     }
