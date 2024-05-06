@@ -1351,6 +1351,16 @@
                 $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "1 / 1 / 2 / 1"})   // 不重要紧急占一行
                 $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "2 / 1 / 4 / 1"})   // 不重要不紧急占二行
                 $("span.duedate-today").parents('li').css({backgroundColor: "#ff000052"})                      // “今天”底色高亮
+
+
+                // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+                let divObserve = document.getElementsByClassName('matrix-container')[0];
+                Tools.ObserveDOM(divObserve, function(m){
+                    $("span.project-hint").parents('li').each(function(){
+                        $(this).css({backgroundColor: "white"})
+                        $(this).has('span.duedate-today').css({backgroundColor: "#ff000052"})
+                    })
+                })
             }
         }
     }
