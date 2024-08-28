@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.30.0
+// @version         1.1.31.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1389,15 +1389,49 @@
 				
                 document.querySelectorAll('[data-qa="OpinionArticle-WidgetsBottom"]').forEach(x => x.remove())
 				document.querySelectorAll('[data-qa="OpinionArticle-Left"]').forEach(x => x.remove())
+                document.querySelectorAll('[data-qa="GeneralArticle-WidgetsBottom"]').forEach(x => x.remove())
+				document.querySelectorAll('[data-qa="GeneralArticle-Left"]').forEach(x => x.remove())
 				document.querySelectorAll('[data-qa="Component-renderMap-StyledDiv"]').forEach(x => x.remove())
 				document.querySelectorAll('[data-qa="Component-Container"]').forEach(x => x.remove())
             }
         }
 	}
 
+	// 半岛
+	class Aljazeera extends BasePattern{
+		
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/www\.aljazeera\.com\/.*/) == 0;
+        }
+		
+        autoProcessHtml() {
+
+            let intervalCallBack = setInterval(_Simplify, 500);
+
+            function _Simplify() {
+                if (document.readyState != "complete") {
+                    console.log("简化网页以存储：等待加载结束");
+                    return;
+                }
+                clearInterval(intervalCallBack);
+				console.log("简化网页以存储：开始简化");
+				
+                document.querySelectorAll('[class="more-on"]').forEach(x => x.remove())
+				document.querySelectorAll('[id="article-newsletter-slot"]').forEach(x => x.remove())
+				
+				console.log("简化网页以存储：结束简化");
+            }
+        }
+	}
+
+
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
-        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue, Dida, Scmp];
+        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue, Dida, Scmp, Aljazeera];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
