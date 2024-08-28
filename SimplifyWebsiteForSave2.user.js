@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.29.0
+// @version         1.1.30.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1365,9 +1365,39 @@
         }
     }
 
+	// 南华早报
+	class Scmp extends BasePattern{
+		
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/www\.scmp\.com\/.*/) == 0;
+        }
+		
+        autoProcessHtml() {
+
+            let intervalCallBack = setInterval(_Simplify, 500);
+
+            function _Simplify() {
+                if (document.readyState != "complete") {
+                    console.log("简化网页以存储：等待加载结束");
+                    return;
+                }
+                clearInterval(intervalCallBack);
+				
+                document.querySelectorAll('[data-qa="OpinionArticle-WidgetsBottom"]').forEach(x => x.remove())
+				document.querySelectorAll('[data-qa="OpinionArticle-Left"]').forEach(x => x.remove())
+				document.querySelectorAll('[data-qa="Component-renderMap-StyledDiv"]').forEach(x => x.remove())
+				document.querySelectorAll('[data-qa="Component-Container"]').forEach(x => x.remove())
+            }
+        }
+	}
+
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
-        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue, Dida];
+        let classes = [CSDNPattern1, CnblogPattern1, JuejinPattern1, CodeProject, ZhihuDaily, ZhihuZhuanlan, EastMoney, V2EX, Weixin, WuAiPoJie, Kanxue, Dida, Scmp];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
@@ -1849,6 +1879,7 @@
         let myselectBox = new SelectElemFromBox({
 
         });
+        SelectElemFromBox.active = false;
         myselectBox.start();
     }
 
