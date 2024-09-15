@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.31.0
+// @version         1.1.31.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1421,6 +1421,7 @@
 				console.log("简化网页以存储：开始简化");
 				
                 document.querySelectorAll('[class="more-on"]').forEach(x => x.remove())
+                document.querySelectorAll('[class="video-player-facade-container"]').forEach(x => x.remove())
 				document.querySelectorAll('[id="article-newsletter-slot"]').forEach(x => x.remove())
 				
 				console.log("简化网页以存储：结束简化");
