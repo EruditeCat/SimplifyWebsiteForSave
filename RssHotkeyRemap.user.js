@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.8.0
+// @version      0.9.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -98,9 +98,11 @@
         /*列表模式下，扩大阅读文章宽度到1000px*/
         div[class~="article_expanded"] div[class="article_full_contents"]{
             width:1000px !important;
+            max-width:1000px !important;
         }
         div[class~="article_expanded"] div[class="article_full_contents"] div[class="article_title"]{
             width:1000px !important;
+            max-width:1000px !important;
         }
         div[class~="article_expanded"] div[class="article_full_contents"] div.article_content{
             width:1000px !important;
@@ -156,7 +158,7 @@
     // 增加以上文章已读按钮
     function addMarkAboveReadButton(articleId){
         let spanElem = document.createElement('span');
-        spanElem.className = "icon16 icon-arrow_up_big";
+        spanElem.className = "icon16 icon-share-article";
         let markAboveReadElem = document.createElement('a');
         markAboveReadElem.addEventListener("mouseup", function(event) { mark_read_direction(articleId,'above') });
         markAboveReadElem.appendChild(spanElem);
@@ -167,7 +169,7 @@
     // 增加ScrollUp按钮
     function addScrollUpButton(articleId){
         let spanElem = document.createElement('span');
-        spanElem.className = "icon16 icon-arrow_up_cornering";
+        spanElem.className = "icon16 icon-widget-minimize";
         let scrollUpElem = document.createElement('a');
         scrollUpElem.addEventListener("mouseup", function(event) { scroll_to_article(articleId) });
         scrollUpElem.appendChild(spanElem);
@@ -178,7 +180,7 @@
     // 增加后台打开文章按钮
     function addOpenUrlBackgroundButton(articleId, articleUrl){
         let spanElem = document.createElement('span');
-        spanElem.className = "icon16 icon-button-open";
+        spanElem.className = "icon16 icon-new_tab_small";
         let openUrlBackgroundElem = document.createElement('a');
         openUrlBackgroundElem.addEventListener("mouseup", function(event) { open_url_background(articleUrl);mark_read(articleId); });
         openUrlBackgroundElem.appendChild(spanElem);
