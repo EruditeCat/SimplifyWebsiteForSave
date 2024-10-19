@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WeWorkDocEnhance
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  提升企微文档的可用性
 // @author       Sjx
 // @match        https://doc.weixin.qq.com/sheet/*
@@ -12,7 +12,16 @@
 (function() {
     'use strict';
 
-    function makeFormulaDivDraggable(){
+    let option = {
+        'formula_bar' : {
+            'mode' : 'fixed',   // fixed or float
+        }
+    }
+
+    function switchFormylaDivMode(){
+
+        let containerDivId = 'formula_bar_float_container'
+        const draggableDiv = document.querySelector('div.formula-bar');
 
         function _makeFormulaDivDraggable(contentDiv){
 
@@ -34,6 +43,7 @@
             containerDiv.style.height = '300px';
             containerDiv.style.border = '1px solid black';
             containerDiv.style.zIndex = '9999';  // 确保 container 位于页面最上层
+            containerDiv.id = containerDivId;
 
             // 将 container div 插入到 contentDiv 的父节点中，并包裹 contentDiv
             contentDiv.parentNode.insertBefore(containerDiv, contentDiv);
@@ -115,9 +125,29 @@
             });
         }
 
-        const draggableDiv = document.querySelector('div.formula-bar');
-        _makeFormulaDivDraggable(draggableDiv);
+        function _makeFormulaDivFixed(contentDiv){
+
+            // 如果找不到目标 div，则不执行操作
+            if (contentDiv == null) return;
+
+            let containerDiv = document.getElementById(containerDivId)
+            if (containerDiv == null) return;
+
+            containerDiv.parentNode.insertBefore(contentDiv, containerDiv);
+            contentDiv.style.removeProperty('height');
+            contentDiv.style.removeProperty('max-height');
+            containerDiv.remove();
+        }
+
+        if (option['formula_bar']['mode'] == 'fixed'){
+            _makeFormulaDivDraggable(draggableDiv);
+            option['formula_bar']['mode'] = 'float'
+        }else{
+            _makeFormulaDivFixed(draggableDiv);
+            option['formula_bar']['mode'] = 'fixed'
+        }
     }
+
 
     // 一个全局的菜单按钮
     function floatMenuButton(){
@@ -162,10 +192,10 @@
 
         // 创建菜单项
         const command1 = document.createElement('div');
-        command1.innerText = '浮出公式栏';
+        command1.innerText = '切换公式栏';
         command1.style.cursor = 'pointer';
         command1.onclick = function() {
-            makeFormulaDivDraggable();
+            switchFormylaDivMode();
             menu.style.display = 'none'; // 执行后隐藏菜单
         };
 
