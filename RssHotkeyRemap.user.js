@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.9.0
+// @version      0.9.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -33,22 +33,30 @@
     el.onkeydown = function(evt) {
         evt = evt || window.event;
         switch (evt.keyCode) {
-            case 45: //insert -> n
+            case 97: //Numpad1 -> n
                 evt.stopImmediatePropagation();
                 simulateKeyDown('keydown', 78);
                 break;
-            case 40: //↓ -> p
+            case 96: //Numpad0 -> Space
                 evt.stopImmediatePropagation();
                 evt.view.event.preventDefault();   // 阻止发生页面滚动到底的行为
+                simulateKeyDown('keydown', 32);
+                break;
+            case 98: // Numpad2 -> p
+                evt.stopImmediatePropagation();
                 simulateKeyDown('keydown', 80);
                 break;
-            case 46: // delete -> ctrl+m
-                evt.stopImmediatePropagation();
-                simulateKeyDown('keyup', 77, true);
-                break;
-            case 107: // + -> b
+            case 99: // Numpad3 -> b
                 evt.stopImmediatePropagation();
                 simulateKeyDown('keydown', 66);
+                break;
+            case 101: // Numpad5 -> r
+                evt.stopImmediatePropagation();
+                simulateKeyDown('keydown', 82);
+                break;
+            case 102: // Numpad6 -> ctrl+m
+                evt.stopImmediatePropagation();
+                simulateKeyDown('keyup', 77, true);
                 break;
             default:
                 break;
@@ -94,8 +102,13 @@
             padding-top: 4px !important;
             /*left: -5px  !important;*/
         }
-        
-        /*列表模式下，扩大阅读文章宽度到1000px*/
+
+
+
+		div.ar:not(.article_expanded) {
+			height:32px;
+		}
+        /*扩大阅读文章宽度到1000px*/
         div[class~="article_expanded"] div[class="article_full_contents"]{
             width:1000px !important;
             max-width:1000px !important;
@@ -115,7 +128,11 @@
             margin-left: auto !important;
             margin-right: auto !important;
         }
-        
+         /*不显示ReadLater按钮*/
+        div[id^="article_read_later_btn"]
+        {
+            display: none !important;
+        }
         `;
         document.body.appendChild(style);
     };
