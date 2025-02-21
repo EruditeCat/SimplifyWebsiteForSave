@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.9.1
+// @version      0.9.2
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -138,7 +138,142 @@
     };
     loadCss();
 
+    // 显示小键盘
+    function showNumpad(){
+        // 定义参数化的配置
+        const config = {
+            buttonSize: 35,     // 按键的基本大小（宽度和高度）
+        };
+        config.buttonGap = 0.16*config.buttonSize;      // 按键间距
+        config.margin = 0.3*config.buttonSize;
+        config.keypadWidth = 4*config.buttonSize+3*config.buttonGap+2*config.margin;   // 小键盘的宽度
+        config.keypadHeight = 5*config.buttonSize+4*config.buttonGap+2*config.margin;  // 小键盘的高度
+        config.largeButtonSize = 2*config.buttonSize+config.buttonGap; // 大按钮高度（Enter 和 +）
+        config.fontSize = 0.3*config.buttonSize;       // 按键字体大小
+        config.largeButtonFontSize = 0.3*config.buttonSize; // Enter 键的字体大小
 
+        // 创建小键盘容器
+        const keypadContainer = document.createElement('div');
+        keypadContainer.style.cssText = `
+display: grid;
+grid-template-columns: repeat(4, ${config.buttonSize}px);
+grid-gap: ${config.buttonGap}px;
+margin: ${config.margin}px auto;
+width: ${config.keypadWidth}px;
+height: ${config.keypadHeight}px;
+padding: ${config.margin}px;
+border: 2px solid #ccc;
+border-radius: calc(0.5 * ${config.margin}px);
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+background-color: #f9f9f9;
+position: fixed;
+bottom: 0;
+left: 100px;
+cursor: move;
+z-index: 1000;
+`;
+
+        // 按键配置
+        const keys = [
+            'Num', '/', '*', '-',
+            '7', '8', '9', '+',
+            '4', '5', '6',
+            '1', '2', '3', 'Enter',
+            '0', '.'
+        ];
+
+        const keyMaps = {
+            '0' : 'Space',
+            '1' : '\u21D3',
+            '2' : '\u21D1',
+            '3' : 'B',
+            '5' : '\u21BA',
+            '6' : '\u2714',
+            '4' : '',
+            '7' : '',
+            '8' : '',
+            '9' : '',
+            //'.' : '',
+        };
+        // 创建按键
+        keys.forEach(key => {
+            const keyButton = document.createElement('button');
+            keyButton.id = `keybord_${key}`
+            keyButton.textContent = key;
+            keyButton.style.width = `${config.buttonSize}px`;  // 使用参数化的按键大小
+            keyButton.style.height = `${config.buttonSize}px`; // 使用参数化的按键大小
+            keyButton.style.fontSize = `${config.fontSize}px`; // 使用参数化的字体大小
+            keyButton.style.border = '1px solid #ddd';
+            keyButton.style.borderRadius = `calc(0.4*${config.margin}px)`;
+            keyButton.style.cursor = 'pointer';
+            keyButton.style.backgroundColor = '#fff';
+
+            // 合并0键跨两列
+            if (key === '0') {
+                keyButton.style.gridColumn = 'span 2';
+                keyButton.style.width = `${config.largeButtonSize}px`;  //
+            }
+
+            // 让 + 和 Enter 键横跨两行，并且设置更高的按钮
+            if (key === '+' || key === 'Enter') {
+                keyButton.style.gridRow = 'span 2';
+                keyButton.style.height = `${config.largeButtonSize}px`;  // 设置更高的按钮
+            }
+
+            keyButton.addEventListener('mouseover', () => {
+                keyButton.style.backgroundColor = '#f0f0f0';
+            });
+
+            keyButton.addEventListener('mouseout', () => {
+                keyButton.style.backgroundColor = '#fff';
+            });
+
+            keypadContainer.appendChild(keyButton);
+        });
+
+        // 按照按键映射显示文字
+        for(let key in keyMaps){
+            keypadContainer.querySelector(`#keybord_${key}`).innerText = keyMaps[key]
+        }
+
+        function updateNumLockStatus(event) {
+            // Check the status of Num Lock key
+            const numLockEnabled = event.getModifierState('NumLock');
+            if(numLockEnabled)
+                keypadContainer.querySelector(`#keybord_Num`).style.backgroundColor = 'yellow'
+            else
+                keypadContainer.querySelector(`#keybord_Num`).style.backgroundColor = '#f9f9f9'
+        }
+        // Add event listener for keydown event
+        window.addEventListener('keyup', updateNumLockStatus);
+
+        // 拖拽功能实现
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        keypadContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - keypadContainer.getBoundingClientRect().left;
+            offsetY = e.clientY - keypadContainer.getBoundingClientRect().top;
+            keypadContainer.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                keypadContainer.style.left = `${e.clientX - offsetX}px`;
+                keypadContainer.style.top = `${e.clientY - offsetY}px`;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            keypadContainer.style.cursor = 'move';
+        });
+
+        // 将小键盘添加到页面
+        document.body.appendChild(keypadContainer);
+    }
+    showNumpad();
 
     // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     let observeDOM = (function(){
