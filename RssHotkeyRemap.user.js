@@ -5,7 +5,6 @@
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
-// @match        https://theoldreader.com/*
 // @grant        none
 // ==/UserScript==
 
@@ -340,6 +339,28 @@ z-index: 1000;
         divElem.prepend(openUrlBackgroundElem);
     }
 
+    class FixedSizeCache {
+        constructor(maxSize) {
+            this.maxSize = maxSize;
+            this.cache = new Map();
+        }
+
+        add(key) {
+            if (this.cache.has(key)) {
+                this.cache.delete(key);
+            } else if (this.cache.size >= this.maxSize) {
+                const oldestKey = this.cache.keys().next().value;
+                this.cache.delete(oldestKey);
+            }
+            this.cache.set(key, true);
+        }
+
+        find(key) {
+            return this.cache.has(key);
+        }
+    }
+    var appinnForumArticleCache = new FixedSizeCache(100);
+
     // 添加文章的回调
     function onAddArticle(ar){
         if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
@@ -364,6 +385,13 @@ z-index: 1000;
                 if (regmatch){
                     let author = regmatch[1]
                     span.innerText = `【${author}】`+span.innerText;
+                }
+            }else if(link.includes("https://meta.appinn.net")){ // 对小众软件论坛的帖子做去重
+                if(appinnForumArticleCache.find(span.innerText)){
+                    mark_read(articleId, true, true)
+                    ar.style.opacity = 0.1
+                }else{
+                    appinnForumArticleCache.add(span.innerText)
                 }
             }
         }
