@@ -1,13 +1,17 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.9.3
+// @version      0.9.4
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
 // @grant        none
 // ==/UserScript==
 
+/*
+依赖的Inoreader的API如下：
+is_touch_device : 判断当前是否触摸屏，From index_js.js
+*/
 (function() {
     'use strict';
 
@@ -132,6 +136,12 @@
         {
             display: none !important;
         }
+         /*不显示右下角控制文章上下的按钮*/
+        div[id="move_article_list"]
+        {
+            display: none !important;
+        }
+
         `;
         document.body.appendChild(style);
     };
@@ -272,7 +282,7 @@ z-index: 1000;
         // 将小键盘添加到页面
         document.body.appendChild(keypadContainer);
     }
-    showNumpad();
+    if(!is_touch_device()) showNumpad();
 
     // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视文章列表变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     let observeDOM = (function(){
