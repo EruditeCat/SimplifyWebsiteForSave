@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.9.7
+// @version      0.9.8
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -527,7 +527,7 @@ z-index: 1000;
         }
 
     }
-    if(!is_touch_device()){
+    if(is_touch_device()){
             new TouchScreenUI().run();
     }
 
