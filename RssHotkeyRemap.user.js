@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -225,6 +225,19 @@ mark_read_direction(articleId,'above'): 将某篇文章以上标记为已读 ，
             this.lastSelectedDiv = newDiv;
         }
 
+        // 加载css
+        loadCss() {
+	    let style = document.createElement('style');
+            style.innerHTML = `
+ /*不显示右下角控制文章上下的按钮*/
+div[id="move_article_list"]
+{
+    display: none !important;
+}
+        `;
+            document.body.appendChild(style);
+    	}
+	    
         run(){
             let touchTestBtn = new DraggableFixedButton({
                 size: 30,
@@ -270,6 +283,9 @@ mark_read_direction(articleId,'above'): 将某篇文章以上标记为已读 ，
                 let collisions = this.checkButtonCollisions(touchTestBtn.InnerButton(), articleDivs);
                 if (collisions.length > 0) this.selectDiv(collisions[0])
             })
+
+		
+            this.loadCss();
         }
 
     }
