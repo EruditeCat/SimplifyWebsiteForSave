@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      0.9.6
+// @version      0.9.7
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -13,6 +13,7 @@
 is_touch_device : 判断当前是否触摸屏， index_js.js
 open_url_background(url) : 在后台打开url，index_js.js
 mark_read(articleId) : 将某篇文章标记为已读 ，index_js.js
+mark_read_direction(articleId,'above'): 将某篇文章以上标记为已读 ，index_js.js
 */
 (function() {
     'use strict';
@@ -288,100 +289,246 @@ z-index: 1000;
 
 
     // 可拖动的圆形按钮类
-    class DraggableButtonCreator {
-        constructor(text, top, left, size) {
-            this.text = text;
-            this.top = top;
-            this.left = left;
-            this.size = size;
-            this.createStyle();
-            this.initCreateButton();
+    class DraggableFixedButton {
+        constructor(config) {
+            // 合并配置
+            this.config = Object.assign({
+                size: 50,
+                position: { right: 20, bottom: 20 },
+                color: 'rgba(33, 150, 243, 0.5)',
+                onClick: () => {}
+            }, config)
+
+            // 创建按钮元素
+            this.button = document.createElement('button')
+            this.button.textContent = this.config.textContent
+            this.setBaseStyles()
+            document.body.appendChild(this.button)
+
+            // 初始化状态
+            this.isDragging = false
+            this.startPos = { x: 0, y: 0 }
+            this.currentPos = { ...this.config.position }
+            this.lastZoom = 1
+            this.zIndex = this.config.zIndex
+
+            // 绑定事件
+            this.initEvents()
+            this.startZoomMonitor()
         }
 
-        createStyle() {
-            const styleElement = document.createElement('style');
-            const css = `
-                   .draggable {
-                        position: fixed;
-                        background-color: rgba(0, 123, 255, 0.3);
-                        color: white;
-                        border: none;
-                        cursor: move;
-                        border-radius: 50%;
-                        user-select: none;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-                `;
-            styleElement.textContent = css;
-            document.head.appendChild(styleElement);
+        InnerButton() {return this.button}
+
+        setBaseStyles() {
+            // 基础样式设置
+            Object.assign(this.button.style, {
+                position: 'fixed',
+                borderRadius: '50%',
+                cursor: 'move',
+                transformOrigin: 'center',
+                border: 'none',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                transition: 'opacity 0.3s',
+                width: `${this.config.size}px`,
+                height: `${this.config.size}px`,
+                right: `${this.config.position.right}px`,
+                bottom: `${this.config.position.bottom}px`,
+                backgroundColor: this.config.color,
+                opacity: this.config.color.split(',')[3].split(')')[0],
+                zIndex: this.config.zIndex
+            })
+
+            // 悬停效果
+            this.button.addEventListener('mouseenter', () => {
+                this.button.style.opacity = Math.min(
+                    parseFloat(this.button.style.opacity) + 0.3,
+                    1
+                )
+            })
+            this.button.addEventListener('mouseleave', () => {
+                this.button.style.opacity = this.config.color.split(',')[3].split(')')[0]
+            })
         }
 
-        initCreateButton() {
-            const createButton = document.getElementById('createButton');
-            createButton.addEventListener('click', () => {
-                this.createDraggableButton();
-            });
+        initEvents() {
+            // 鼠标事件
+            this.button.addEventListener('mousedown', this.startDrag.bind(this))
+            this.button.addEventListener('click', this.handleClick.bind(this))
+
+            // 触摸事件
+            this.button.addEventListener('touchstart', this.startDrag.bind(this))
+            this.button.addEventListener('touchend', this.endDrag.bind(this))
         }
 
-        createDraggableButton() {
-            const newButton = document.createElement('button');
-            newButton.textContent = `${this.text}`;
-            newButton.classList.add('draggable');
-            newButton.style.top = `${this.top}px`;
-            newButton.style.left = `${this.left}px`;
-            newButton.style.width = `${this.size}px`;
-            newButton.style.height = `${this.size}px`;
-            document.body.appendChild(newButton);
+        startDrag(e) {
+            this.isDragging = true
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY
 
-            this.makeDraggable(newButton);
+            // 记录初始位置
+            this.startPos = {
+                x: clientX,
+                y: clientY,
+                right: this.currentPos.right,
+                bottom: this.currentPos.bottom
+            }
+
+            // 添加移动监听
+            document.addEventListener('mousemove', this.drag)
+            document.addEventListener('mouseup', this.endDrag)
+            document.addEventListener('touchmove', this.drag)
         }
 
-        makeDraggable(element) {
-            let isDragging = false;
-            let offsetX, offsetY;
+        drag = (e) => {
+            if (!this.isDragging) return
 
-            element.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                offsetX = e.clientX - parseInt(element.style.left);
-                offsetY = e.clientY - parseInt(element.style.top);
-            });
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY
+            const zoom = this.getZoomLevel()
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    element.style.left = (e.clientX - offsetX) + 'px';
-                    element.style.top = (e.clientY - offsetY) + 'px';
-                }
-            });
+            // 计算移动距离（考虑缩放）
+            const deltaX = (clientX - this.startPos.x) / zoom
+            const deltaY = (clientY - this.startPos.y) / zoom
 
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
+            // 更新位置
+            this.currentPos.right = this.startPos.right - deltaX
+            this.currentPos.bottom = this.startPos.bottom - deltaY
 
-            element.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                const touch = e.touches[0];
-                offsetX = touch.clientX - parseInt(element.style.left);
-                offsetY = touch.clientY - parseInt(element.style.top);
-            });
+            this.button.style.right = `${this.currentPos.right}px`
+            this.button.style.bottom = `${this.currentPos.bottom}px`
+        }
 
-            document.addEventListener('touchmove', (e) => {
-                if (isDragging) {
-                    const touch = e.touches[0];
-                    element.style.left = (touch.clientX - offsetX) + 'px';
-                    element.style.top = (touch.clientY - offsetY) + 'px';
-                }
-            });
+        endDrag = () => {
+            this.isDragging = false
+            document.removeEventListener('mousemove', this.drag)
+            document.removeEventListener('mouseup', this.endDrag)
+            document.removeEventListener('touchmove', this.drag)
+        }
 
-            document.addEventListener('touchend', () => {
-                isDragging = false;
-            });
+        handleClick(e) {
+            if (!this.isDragging) {
+                this.config.onClick(e)
+            }
+        }
+
+        getZoomLevel() {
+            return window.innerWidth / document.documentElement.clientWidth
+        }
+
+        updateScale() {
+            const currentZoom = this.getZoomLevel()
+            if (currentZoom !== this.lastZoom) {
+                this.button.style.transform = `scale(${1/currentZoom})`
+                this.lastZoom = currentZoom
+            }
+        }
+
+        startZoomMonitor() {
+            const animate = () => {
+                this.updateScale()
+                requestAnimationFrame(animate)
+            }
+            animate()
+        }
+
+        destroy() {
+            this.button.remove()
+            document.removeEventListener('mousemove', this.drag)
+            document.removeEventListener('mouseup', this.endDrag)
+            document.removeEventListener('touchmove', this.drag)
         }
     }
 
-    if(is_touch_device()){
-        new DraggableButtonCreator("点我啊", 50, 50, 80);
+    // 触屏交互
+    class TouchScreenUI {
+        constructor(){
+            this.lastSelectedDiv = null
+        }
+
+        // 检测两个矩形是否碰撞的函数
+        isColliding(rect1, rect2) {
+            return !(
+                rect1.right < rect2.left ||
+                rect1.left > rect2.right ||
+                rect1.bottom < rect2.top ||
+                rect1.top > rect2.bottom
+            );
+        }
+
+        // 检测按钮与所有 div 的碰撞
+        checkButtonCollisions(button, divs) {
+            const buttonRect = button.getBoundingClientRect();
+            const collidingDivs = [];
+
+            divs.forEach(div => {
+                const divRect = div.getBoundingClientRect();
+                if (this.isColliding(buttonRect, divRect)) {
+                    collidingDivs.push(div);
+                }
+            });
+            return collidingDivs;
+        }
+
+        onScrollStopped(delay, callback) {
+            let scrollTimer;
+            window.addEventListener('scroll', function () {
+                if (scrollTimer) {
+                    clearTimeout(scrollTimer);
+                }
+                scrollTimer = setTimeout(() => {
+                    callback();
+                }, delay);
+            });
+        }
+
+        selectDiv(newDiv) {
+            // 取消上一次选中的 div 的选中状态
+            if (this.lastSelectedDiv) {
+                this.lastSelectedDiv.style.border = '';
+            }
+
+            // 设置新的 div 为选中状态
+            newDiv.style.border = '3px solid red';
+
+            // 更新上一次选中的 div
+            this.lastSelectedDiv = newDiv;
+        }
+
+        run(){
+            let touchTestBtn = new DraggableFixedButton({
+                size: 30,
+                color: 'rgba(255, 99, 71, 0.7)',
+                position: { right: 0.5*window.innerWidth, bottom: 0.5*window.innerHeight },
+                zIndex : 0,
+                onClick: () => {
+                    //console.log('按钮被点击了!')
+                    //alert('Hello from fixed button!')
+                }
+            });
+
+            let markAboveBtn = new DraggableFixedButton({
+                size: 60,
+                color: 'rgba(255, 99, 71, 0.7)',
+                position: { right: 0.05*window.innerWidth, bottom: 0.05*window.innerHeight },
+                zIndex : 10000,
+                textContent : "以上已读",
+                onClick: () => {
+                    if (this.lastSelectedDiv){
+                        let articleId = this.lastSelectedDiv.getAttribute('data-aid');
+                        mark_read_direction(articleId,'above');
+                    }
+                }
+            });
+            this.onScrollStopped(300,()=>{
+                const articleDivs = document.querySelectorAll('div[id=reader_pane]>div[id^="article_"]');
+                let collisions = this.checkButtonCollisions(touchTestBtn.InnerButton(), articleDivs);
+                if (collisions.length > 0) this.selectDiv(collisions[0])
+            })
+        }
+
+    }
+    if(!is_touch_device()){
+            new TouchScreenUI().run();
     }
 
 
@@ -447,7 +594,7 @@ z-index: 1000;
         markAboveReadElem.addEventListener("mouseup", function(event) { mark_read_direction(articleId,'above') });
         markAboveReadElem.appendChild(spanElem);
         let divElem = document.getElementById("ad_"+articleId);
-        divElem.prepend(markAboveReadElem);
+        if(divElem) divElem.prepend(markAboveReadElem);
     }
 
     // 增加ScrollUp按钮
