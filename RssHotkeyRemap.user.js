@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -272,7 +272,7 @@ div[id="move_article_list"]
                 textContent : "Open",
                 onClick: () => {
                     if (this.lastSelectedDiv){
-                        let link = this.lastSelectedDiv.getElementsByTagName("a")[0].getAttribute('href');
+                        let link = this.lastSelectedDiv.getElementsByTagName("a")[2].getAttribute('href');
                         //open_url_background(link);
 			window.open(link,'_blank')
                     }
