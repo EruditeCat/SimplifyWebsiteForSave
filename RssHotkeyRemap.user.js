@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      1.0.3
+// @version      1.0.4
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -654,10 +654,15 @@ z-index: 1000;
         let spanElem = document.createElement('span');
         spanElem.className = "icon16 icon-new_tab_small";
         let openUrlBackgroundElem = document.createElement('a');
-        openUrlBackgroundElem.href = articleUrl;
-        openUrlBackgroundElem.target = '_blank';
-        // 用下面这种方式需要依赖Inoreader的插件
-        //openUrlBackgroundElem.addEventListener("mouseup", function(event) { open_url_background(articleUrl);mark_read(articleId); });
+        if (window.hasOwnProperty("openUrlBackground")){ // 这种方式依赖于插件提供后台打开标签页的能力
+            openUrlBackgroundElem.addEventListener("mouseup", function(event) {
+                openUrlBackground(articleUrl);
+                mark_read(articleId);
+            });
+        }else{
+            openUrlBackgroundElem.href = articleUrl;
+            openUrlBackgroundElem.target = '_blank';
+        }
         openUrlBackgroundElem.appendChild(spanElem);
         let divElem = document.getElementById("ad_"+articleId);
         divElem.prepend(openUrlBackgroundElem);
