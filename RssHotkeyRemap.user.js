@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    http://EruditePig.net/
-// @version      1.0.4
+// @version      1.0.5
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -456,7 +456,7 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 background-color: #f9f9f9;
 position: fixed;
 bottom: 0;
-left: 100px;
+right: 50px;
 cursor: move;
 z-index: 1000;
 `;
