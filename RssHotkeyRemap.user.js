@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
-// @namespace    http://EruditePig.net/
-// @version      1.0.5
+// @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
+// @version      1.0.6
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -668,6 +668,10 @@ z-index: 1000;
         divElem.prepend(openUrlBackgroundElem);
     }
 
+    function is_touch_device(){
+        return 'ontouchstart' in window;
+    }
+    
     // 添加文章的回调
     function onAddArticle(ar){
         if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
