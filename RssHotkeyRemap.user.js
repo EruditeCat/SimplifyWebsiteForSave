@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.6
+// @version      1.0.7
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -272,9 +272,12 @@ div[id="move_article_list"]
                 textContent : "Open",
                 onClick: () => {
                     if (this.lastSelectedDiv){
-                        let link = this.lastSelectedDiv.getElementsByTagName("a")[2].getAttribute('href');
-                        //open_url_background(link);
-			window.open(link,'_blank')
+                        //console.log(this.lastSelectedDiv)
+                        let aId = "article_title_link_"+this.lastSelectedDiv.id.split("article_")[1];
+                        //console.log(aId)
+                        let link = document.getElementById(aId).getAttribute('href');
+                        //article_click_trap(null,aId)
+                        window.open(link,'_blank')
                     }
                 }
             });
@@ -711,3 +714,4 @@ z-index: 1000;
     }
 // endregion 监视文章列表变化
 })();
+
