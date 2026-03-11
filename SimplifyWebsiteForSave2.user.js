@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.31.1
+// @version         1.1.32.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -703,6 +703,65 @@
             }
         }
 
+        static _hotkeyToastElem = null;
+        static _hotkeyToastHideTimer = null;
+        static _hotkeyToastCleanupTimer = null;
+
+        static _ensureHotkeyToast() {
+            if (Tools._hotkeyToastElem) return Tools._hotkeyToastElem;
+
+            Tools.WriteStylesheet(`
+#__sjx_hotkey_toast {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.78);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    z-index: 2147483647;
+    pointer-events: none;
+    opacity: 0;
+    display: none;
+}
+            `);
+
+            let el = document.createElement("div");
+            el.id = "__sjx_hotkey_toast";
+            el.setAttribute("role", "status");
+            (document.body || document.documentElement).appendChild(el);
+            Tools._hotkeyToastElem = el;
+            return el;
+        }
+
+        static ShowHotkeyToast(message, durationMs = 1200) {
+            let el = Tools._ensureHotkeyToast();
+            el.textContent = message;
+
+            if (Tools._hotkeyToastHideTimer) clearTimeout(Tools._hotkeyToastHideTimer);
+            if (Tools._hotkeyToastCleanupTimer) clearTimeout(Tools._hotkeyToastCleanupTimer);
+
+            el.style.display = "block";
+            el.style.transition = "none";
+            el.style.opacity = "0";
+
+            let fadeIn = () => {
+                el.style.transition = "opacity 180ms ease";
+                el.style.opacity = "1";
+            };
+            if (typeof requestAnimationFrame === "function") requestAnimationFrame(fadeIn);
+            else fadeIn();
+
+            Tools._hotkeyToastHideTimer = setTimeout(() => {
+                el.style.opacity = "0";
+                Tools._hotkeyToastCleanupTimer = setTimeout(() => {
+                    el.style.display = "none";
+                }, 220);
+            }, durationMs);
+        }
     }
 
     // 特征类基类
@@ -1948,12 +2007,14 @@
 
     // 编辑网页
     function editHtml() {
-        let isEditingHtml = "true";
-        document.body.contentEditable = isEditingHtml;
+        document.body.contentEditable = "true";
         let handler = function (e) {
-            if (e.key == "Escape") {
+            if (e.altKey && (e.key === "x" || e.key === "X" || e.code === "KeyX")) {
                 document.body.contentEditable = "false";
                 document.removeEventListener("keyup", handler);
+                if (e.preventDefault) e.preventDefault();
+                if (e.stopPropagation) e.stopPropagation();
+                Tools.ShowHotkeyToast("Alt+X：退出编辑");
             }
         };
         document.addEventListener("keyup", handler)
@@ -1968,24 +2029,31 @@
     hotkeys('alt+q,alt+w,alt+z,alt+a,alt+s,alt+x,ctrl+`', 'all', function (event, handler) {
         switch (handler.key) {
             case "alt+q":
+                Tools.ShowHotkeyToast("Alt+Q：简化元素（↑↓选择，Enter确认）");
                 simplifyElem();
                 break;
             case "alt+w":
+                Tools.ShowHotkeyToast("Alt+W：删除元素（↑↓选择，Enter删除，Esc退出）");
                 deleteElem();
                 break;
             case "alt+z":
+                Tools.ShowHotkeyToast("Alt+Z：框选删除（拖拽框选，Esc退出）");
                 selectBoxDeleteElem();
                 break;
             case "alt+a":
+                Tools.ShowHotkeyToast("Alt+A：手动触发简化");
                 delayAutoSimplifyElem();
                 break;
             case "alt+s":
+                Tools.ShowHotkeyToast("Alt+S：添加目录跳转脚本");
                 addTocJumpScript();
                 break;
             case "alt+x":
+                Tools.ShowHotkeyToast("Alt+X：进入编辑（Alt+X退出）");
                 editHtml();
                 break;
             case "ctrl+`":
+                Tools.ShowHotkeyToast("Ctrl+`：高亮选中文字");
                 highLight();
                 break;
         }
