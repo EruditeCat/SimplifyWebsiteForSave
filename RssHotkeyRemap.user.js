@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.9
+// @version      1.0.9.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -285,7 +285,7 @@ div[id="move_article_list"]
         `;
             document.body.appendChild(style);
     	}
-	    
+
         run(){
             let touchTestBtn = new DraggableFixedButton({
                 size: 30,
@@ -337,7 +337,7 @@ div[id="move_article_list"]
                 if (collisions.length > 0) this.selectDiv(collisions[0])
             })
 
-		
+
             this.loadCss();
         }
 
@@ -480,6 +480,11 @@ div[id="move_article_list"]
 
             // 显示小键盘
             function showNumpad(){
+                const existingKeypad = document.getElementById('rss_numpad_overlay');
+                if (existingKeypad) existingKeypad.remove();
+                const existingShowButton = document.getElementById('rss_numpad_show_button');
+                if (existingShowButton) existingShowButton.remove();
+
                 // 定义参数化的配置
                 const config = {
                     buttonSize: 35,     // 按键的基本大小（宽度和高度）
@@ -510,7 +515,6 @@ background-color: #f9f9f9;
 position: fixed;
 bottom: 0;
 right: 50px;
-cursor: move;
 z-index: 1000;
 `;
 
@@ -537,13 +541,10 @@ z-index: 1000;
                     //'.' : '',
                 };
 
-                const storageVisibleKey = 'rss_numpad_visible';
-                const storagePosKey = 'rss_numpad_pos';
-
                 const showButton = document.createElement('button');
                 showButton.id = 'rss_numpad_show_button';
                 showButton.textContent = '⌨';
-                showButton.title = '显示/隐藏小键盘 (Ctrl+Shift+K)';
+                showButton.title = '显示小键盘';
                 showButton.style.cssText = `
 position: fixed;
 bottom: 10px;
@@ -582,14 +583,6 @@ z-index: 1002;
                 const setVisible = (visible) => {
                     keypadContainer.style.display = visible ? 'grid' : 'none';
                     showButton.style.display = visible ? 'none' : 'block';
-                    try {
-                        localStorage.setItem(storageVisibleKey, visible ? '1' : '0');
-                    } catch (e) {}
-                };
-
-                const toggleVisible = () => {
-                    const isVisible = keypadContainer.style.display !== 'none';
-                    setVisible(!isVisible);
                 };
 
                 closeButton.addEventListener('click', (e) => {
@@ -653,65 +646,7 @@ z-index: 1002;
                 // Add event listener for keydown event
                 window.addEventListener('keyup', updateNumLockStatus);
 
-                // 拖拽功能实现
-                let isDragging = false;
-                let offsetX, offsetY;
-
-                keypadContainer.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    keypadContainer.style.bottom = 'auto';
-                    keypadContainer.style.right = 'auto';
-                    offsetX = e.clientX - keypadContainer.getBoundingClientRect().left;
-                    offsetY = e.clientY - keypadContainer.getBoundingClientRect().top;
-                    keypadContainer.style.cursor = 'grabbing';
-                });
-
-                window.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        keypadContainer.style.left = `${e.clientX - offsetX}px`;
-                        keypadContainer.style.top = `${e.clientY - offsetY}px`;
-                    }
-                });
-
-                window.addEventListener('mouseup', () => {
-                    isDragging = false;
-                    keypadContainer.style.cursor = 'move';
-                    try {
-                        const left = parseFloat(keypadContainer.style.left);
-                        const top = parseFloat(keypadContainer.style.top);
-                        if (Number.isFinite(left) && Number.isFinite(top)) {
-                            localStorage.setItem(storagePosKey, JSON.stringify({ left, top }));
-                        }
-                    } catch (e) {}
-                });
-
-                window.addEventListener('keydown', (e) => {
-                    if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        toggleVisible();
-                    }
-                }, true);
-
-                try {
-                    const posRaw = localStorage.getItem(storagePosKey);
-                    if (posRaw) {
-                        const pos = JSON.parse(posRaw);
-                        if (pos && Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
-                            keypadContainer.style.bottom = 'auto';
-                            keypadContainer.style.right = 'auto';
-                            keypadContainer.style.left = `${pos.left}px`;
-                            keypadContainer.style.top = `${pos.top}px`;
-                        }
-                    }
-                } catch (e) {}
-
-                try {
-                    const visibleRaw = localStorage.getItem(storageVisibleKey);
-                    setVisible(visibleRaw === '1');
-                } catch (e) {
-                    setVisible(false);
-                }
+                setVisible(false);
 
                 // 将小键盘添加到页面
                 document.body.appendChild(keypadContainer);
@@ -760,7 +695,7 @@ z-index: 1002;
         m.forEach(record => record.addedNodes.length & addedNodes.push(...record.addedNodes))
         addedNodes.forEach(onAddArticle)
     });
-    
+
     // 固定大小的环形缓冲区，用来针对bbs这种论坛有很多重复帖子的情况
     class FixedSizeCache {
         constructor(maxSize) {
@@ -830,7 +765,7 @@ z-index: 1002;
     function is_touch_device(){
         return 'ontouchstart' in window;
     }
-    
+
     // 添加文章的回调
     function onAddArticle(ar){
         if(ar.nodeName=='DIV'&&ar.className.includes("article_subscribed")){
@@ -843,7 +778,7 @@ z-index: 1002;
                 addScrollUpButton(articleId);  // 增加ScrollUp按钮
                 addOpenUrlBackgroundButton(articleId, link);   // 增加后台打开文章按钮
             }
-            
+
             let span = article.getElementsByTagName("span")[0];
             let span2 = article.getElementsByTagName("span")[1];
             if (link.includes("https://www.ndtv.com/")){ // 对印度NDTV的新闻加上分组
