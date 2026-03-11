@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.8
+// @version      1.0.9
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -17,6 +17,54 @@ mark_read_direction(articleId,'above'): 将某篇文章以上标记为已读 ，
 */
 (function() {
     'use strict';
+    /**
+ * 模拟触发键盘按键事件
+ * @param {HTMLElement} element 要触发按键的目标元素（如输入框、document）
+ * @param {string} key 按键值（如 'Enter', 'a', 'ArrowRight', 'Ctrl'）
+ * @param {Object} options 可选参数（是否按住shift/ctrl/alt等）
+ *
+ *   // 示例1：给输入框触发回车键
+ *   //const input = document.querySelector('input');
+ *   //simulateKeyPress(input, 'Enter');
+ */
+    function simulateKeyPress(element, key, options = {}) {
+        // 定义默认参数
+        const {
+            ctrlKey = false,
+            shiftKey = false,
+            altKey = false,
+            metaKey = false // Windows键/Command键
+        } = options;
+
+        // 1. 模拟按键按下 (keydown)
+        const downEvent = new KeyboardEvent('keydown', {
+            key: key,
+            code: key, // 部分浏览器需要code属性
+            ctrlKey,
+            shiftKey,
+            altKey,
+            metaKey,
+            bubbles: true, // 事件冒泡
+            cancelable: true // 可取消
+        });
+        element.dispatchEvent(downEvent);
+
+        // 2. 模拟按键弹起 (keyup)
+        const upEvent = new KeyboardEvent('keyup', {
+            key: key,
+            code: key,
+            ctrlKey,
+            shiftKey,
+            altKey,
+            metaKey,
+            bubbles: true,
+            cancelable: true
+        });
+        // 模拟真实按键的延迟（可选）
+        setTimeout(() => {
+            element.dispatchEvent(upEvent);
+        }, 50);
+    }
 
 
     // 可拖动的圆形按钮类
@@ -446,6 +494,7 @@ div[id="move_article_list"]
 
                 // 创建小键盘容器
                 const keypadContainer = document.createElement('div');
+                keypadContainer.id = 'rss_numpad_overlay';
                 keypadContainer.style.cssText = `
 display: grid;
 grid-template-columns: repeat(4, ${config.buttonSize}px);
@@ -487,6 +536,71 @@ z-index: 1000;
                     '9' : '',
                     //'.' : '',
                 };
+
+                const storageVisibleKey = 'rss_numpad_visible';
+                const storagePosKey = 'rss_numpad_pos';
+
+                const showButton = document.createElement('button');
+                showButton.id = 'rss_numpad_show_button';
+                showButton.textContent = '⌨';
+                showButton.title = '显示/隐藏小键盘 (Ctrl+Shift+K)';
+                showButton.style.cssText = `
+position: fixed;
+bottom: 10px;
+right: 10px;
+width: 34px;
+height: 34px;
+border: 1px solid #ccc;
+border-radius: 999px;
+background: #fff;
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+cursor: pointer;
+z-index: 1001;
+`;
+
+                const closeButton = document.createElement('button');
+                closeButton.id = 'rss_numpad_close_button';
+                closeButton.textContent = '×';
+                closeButton.title = '隐藏小键盘';
+                closeButton.style.cssText = `
+position: absolute;
+top: 6px;
+right: 6px;
+width: 22px;
+height: 22px;
+line-height: 20px;
+padding: 0;
+border: 1px solid #ddd;
+border-radius: 6px;
+background: #fff;
+cursor: pointer;
+z-index: 1002;
+`;
+                keypadContainer.style.position = 'fixed';
+                keypadContainer.appendChild(closeButton);
+
+                const setVisible = (visible) => {
+                    keypadContainer.style.display = visible ? 'grid' : 'none';
+                    showButton.style.display = visible ? 'none' : 'block';
+                    try {
+                        localStorage.setItem(storageVisibleKey, visible ? '1' : '0');
+                    } catch (e) {}
+                };
+
+                const toggleVisible = () => {
+                    const isVisible = keypadContainer.style.display !== 'none';
+                    setVisible(!isVisible);
+                };
+
+                closeButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setVisible(false);
+                });
+                showButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setVisible(true);
+                });
+
                 // 创建按键
                 keys.forEach(key => {
                     const keyButton = document.createElement('button');
@@ -545,6 +659,8 @@ z-index: 1000;
 
                 keypadContainer.addEventListener('mousedown', (e) => {
                     isDragging = true;
+                    keypadContainer.style.bottom = 'auto';
+                    keypadContainer.style.right = 'auto';
                     offsetX = e.clientX - keypadContainer.getBoundingClientRect().left;
                     offsetY = e.clientY - keypadContainer.getBoundingClientRect().top;
                     keypadContainer.style.cursor = 'grabbing';
@@ -560,10 +676,46 @@ z-index: 1000;
                 window.addEventListener('mouseup', () => {
                     isDragging = false;
                     keypadContainer.style.cursor = 'move';
+                    try {
+                        const left = parseFloat(keypadContainer.style.left);
+                        const top = parseFloat(keypadContainer.style.top);
+                        if (Number.isFinite(left) && Number.isFinite(top)) {
+                            localStorage.setItem(storagePosKey, JSON.stringify({ left, top }));
+                        }
+                    } catch (e) {}
                 });
+
+                window.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        toggleVisible();
+                    }
+                }, true);
+
+                try {
+                    const posRaw = localStorage.getItem(storagePosKey);
+                    if (posRaw) {
+                        const pos = JSON.parse(posRaw);
+                        if (pos && Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
+                            keypadContainer.style.bottom = 'auto';
+                            keypadContainer.style.right = 'auto';
+                            keypadContainer.style.left = `${pos.left}px`;
+                            keypadContainer.style.top = `${pos.top}px`;
+                        }
+                    }
+                } catch (e) {}
+
+                try {
+                    const visibleRaw = localStorage.getItem(storageVisibleKey);
+                    setVisible(visibleRaw === '1');
+                } catch (e) {
+                    setVisible(false);
+                }
 
                 // 将小键盘添加到页面
                 document.body.appendChild(keypadContainer);
+                document.body.appendChild(showButton);
             }
             showNumpad();
 
@@ -659,14 +811,17 @@ z-index: 1000;
         spanElem.className = "icon16 icon-new_tab_small";
         let openUrlBackgroundElem = document.createElement('a');
         if (window.hasOwnProperty("openUrlBackground")){ // 这种方式依赖于插件提供后台打开标签页的能力
-            openUrlBackgroundElem.addEventListener("mouseup", function(event) {
-                openUrlBackground(articleUrl);
-                mark_read(articleId);
-            });
         }else{
             openUrlBackgroundElem.href = articleUrl;
             openUrlBackgroundElem.target = '_blank';
         }
+
+        openUrlBackgroundElem.addEventListener("mouseup", function(event) {
+            //simulateKeyPress(openUrlBackgroundElem, 'B');
+            if (window.hasOwnProperty("openUrlBackground"))
+                openUrlBackground(articleUrl);
+            mark_read(articleId);
+        });
         openUrlBackgroundElem.appendChild(spanElem);
         let divElem = document.getElementById("ad_"+articleId);
         divElem.prepend(openUrlBackgroundElem);
