@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.32.0
+// @version         1.1.32.1
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -2009,15 +2009,17 @@
     function editHtml() {
         document.body.contentEditable = "true";
         let handler = function (e) {
-            if (e.altKey && (e.key === "x" || e.key === "X" || e.code === "KeyX")) {
+            let isAltPressed = !!(e.altKey || (typeof e.getModifierState === "function" && e.getModifierState("Alt")));
+            let isX = e.code === "KeyX" || e.key === "x" || e.key === "X";
+            if (isAltPressed && isX) {
                 document.body.contentEditable = "false";
-                document.removeEventListener("keyup", handler);
+                document.removeEventListener("keydown", handler, true);
                 if (e.preventDefault) e.preventDefault();
                 if (e.stopPropagation) e.stopPropagation();
                 Tools.ShowHotkeyToast("Alt+X：退出编辑");
             }
         };
-        document.addEventListener("keyup", handler)
+        document.addEventListener("keydown", handler, true)
     }
 
     // 基本流程
