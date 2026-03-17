@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.9.1
+// @version      1.0.10.0
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -745,17 +745,23 @@ z-index: 1002;
         let spanElem = document.createElement('span');
         spanElem.className = "icon16 icon-new_tab_small";
         let openUrlBackgroundElem = document.createElement('a');
-        if (window.hasOwnProperty("openUrlBackground")){ // 这种方式依赖于插件提供后台打开标签页的能力
-        }else{
-            openUrlBackgroundElem.href = articleUrl;
-            openUrlBackgroundElem.target = '_blank';
-        }
+        openUrlBackgroundElem.href = '#';
 
         openUrlBackgroundElem.addEventListener("mouseup", function(event) {
-            //simulateKeyPress(openUrlBackgroundElem, 'B');
-            if (window.hasOwnProperty("openUrlBackground"))
-                openUrlBackground(articleUrl);
-            mark_read(articleId);
+            event.stopImmediatePropagation();
+        }, true);
+
+        openUrlBackgroundElem.addEventListener("click", function(event) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            const openInBackgroundFn =
+                (typeof window.openUrlBackground === 'function' && window.openUrlBackground) ||
+                (typeof window.open_url_background === 'function' && window.open_url_background);
+
+            if (openInBackgroundFn) {
+                openInBackgroundFn(articleUrl);
+                mark_read(articleId);
+            }
         });
         openUrlBackgroundElem.appendChild(spanElem);
         let divElem = document.getElementById("ad_"+articleId);
