@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.11.0
+// @version      1.0.11.1
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -779,8 +779,21 @@ color: #fff;
 cursor: pointer;
 `;
 
+        const submitQuery = () => {
+            const query = (textarea.value || '').trim();
+            const template = serviceSelect.value;
+            const url = template.replace('%s', encodeURIComponent(query));
+            window.open(url, '_blank');
+            close();
+        };
+
         const onKeyDown = (e) => {
             if (e.key === 'Escape') close();
+            if (e.ctrlKey && (e.key === 'Enter' || e.keyCode === 13)) {
+                e.preventDefault();
+                e.stopPropagation();
+                submitQuery();
+            }
         };
 
         const close = () => {
@@ -797,11 +810,7 @@ cursor: pointer;
         goBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const query = (textarea.value || '').trim();
-            const template = serviceSelect.value;
-            const url = template.replace('%s', encodeURIComponent(query));
-            window.open(url, '_blank');
-            close();
+            submitQuery();
         });
 
         modal.addEventListener('mousedown', (e) => {
