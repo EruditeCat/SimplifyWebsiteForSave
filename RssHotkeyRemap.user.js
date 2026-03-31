@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.11.1
+// @version      1.0.11.2
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -367,6 +367,22 @@ div[id="move_article_list"]
             el.onkeydown = function(evt) {
                 evt = evt || window.event;
                 switch (evt.keyCode) {
+                    case 67: // c -> open AI query dialog when article dialog is open
+                        if (evt.ctrlKey || evt.altKey || evt.metaKey || evt.shiftKey) break;
+                        if (document.getElementById('rss_ai_query_modal')) break;
+                        const articleDialogOverlay = document.getElementById('article_dialog_scroll_overlay');
+                        if (!articleDialogOverlay) break;
+                        const active = document.activeElement;
+                        if (active) {
+                            const tag = active.tagName;
+                            if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) break;
+                        }
+                        evt.preventDefault();
+                        evt.stopImmediatePropagation();
+                        const titleElem = articleDialogOverlay.querySelector('a.article_title_link');
+                        const title = titleElem ? titleElem.innerText : '';
+                        openAiQueryDialog(title);
+                        break;
                     case 97: //Numpad1 -> n
                         evt.stopImmediatePropagation();
                         simulateKeyDown('keydown', 78);
@@ -692,6 +708,8 @@ z-index: 1002;
         const existing = document.getElementById('rss_ai_query_modal');
         if (existing) existing.remove();
 
+        const articleDialog = document.getElementById('article_dialog');
+
         const modal = document.createElement('div');
         modal.id = 'rss_ai_query_modal';
         modal.style.cssText = `
@@ -783,14 +801,21 @@ cursor: pointer;
             const query = (textarea.value || '').trim();
             const template = serviceSelect.value;
             const url = template.replace('%s', encodeURIComponent(query));
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener,noreferrer');
             close();
         };
 
         const onKeyDown = (e) => {
-            if (e.key === 'Escape') close();
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                close();
+                return;
+            }
             if (e.ctrlKey && (e.key === 'Enter' || e.keyCode === 13)) {
                 e.preventDefault();
+                e.stopImmediatePropagation();
                 e.stopPropagation();
                 submitQuery();
             }
@@ -799,6 +824,17 @@ cursor: pointer;
         const close = () => {
             window.removeEventListener('keydown', onKeyDown, true);
             modal.remove();
+            setTimeout(() => {
+                if (articleDialog && document.contains(articleDialog) && typeof articleDialog.focus === 'function') {
+                    try {
+                        articleDialog.focus({ preventScroll: true });
+                    } catch (e) {
+                        try {
+                            articleDialog.focus();
+                        } catch (e) {}
+                    }
+                }
+            }, 0);
         };
 
         cancelBtn.addEventListener('click', (e) => {
