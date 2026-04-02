@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rss快捷键映射
 // @namespace    https://github.com/EruditeCat/SimplifyWebsiteForSave/blob/master/RssHotkeyRemap.user.js
-// @version      1.0.11.2
+// @version      1.0.11.3
 // @description  Inoreader和the old reader快捷键映射，利用小键盘区域，方便快速浏览文章
 // @author       EruditePig
 // @match        https://www.inoreader.com/*
@@ -802,7 +802,7 @@ cursor: pointer;
             const template = serviceSelect.value;
             const url = template.replace('%s', encodeURIComponent(query));
             window.open(url, '_blank', 'noopener,noreferrer');
-            close();
+            close(0);
         };
 
         const onKeyDown = (e) => {
@@ -815,13 +815,12 @@ cursor: pointer;
             }
             if (e.ctrlKey && (e.key === 'Enter' || e.keyCode === 13)) {
                 e.preventDefault();
-                e.stopImmediatePropagation();
                 e.stopPropagation();
                 submitQuery();
             }
         };
 
-        const close = () => {
+        const close = (focusDelayMs = 0) => {
             window.removeEventListener('keydown', onKeyDown, true);
             modal.remove();
             setTimeout(() => {
@@ -834,7 +833,7 @@ cursor: pointer;
                         } catch (e) {}
                     }
                 }
-            }, 0);
+            }, focusDelayMs);
         };
 
         cancelBtn.addEventListener('click', (e) => {
@@ -862,9 +861,12 @@ cursor: pointer;
         panel.appendChild(row);
         modal.appendChild(panel);
         document.body.appendChild(modal);
-
         textarea.focus();
-        textarea.select();
+        const textLen = textarea.value.length;
+        try {
+            textarea.setSelectionRange(textLen, textLen);
+        } catch (e) {}
+        textarea.scrollTop = textarea.scrollHeight;
     }
 
     function ensureAiQueryButtonInArticleDialog() {
