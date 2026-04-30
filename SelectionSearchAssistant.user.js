@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SelectionSearch助手
 // @namespace    http://tampermonkey.net/
-// @version      0.1.0
+// @version      0.2.0
 // @description  把SelectionSearch选择的文字通过消息发过来，再做精细化的处理
 // @author       You
 // @match        *://*/*
@@ -77,7 +77,7 @@ padding: 6px 10px;
         const services = [
             { label: 'GoogleAI', urlTemplate: 'https://www.google.com/search?q=%s&udm=50&csuir=1' },
             { label: 'ChatGPT', urlTemplate: 'https://chatgpt.com/?model=auto&q=%s' },
-            { label: '文心一言', urlTemplate: 'https://yiyan.baidu.com/?q=%s' },
+            { label: '千问', urlTemplate: 'https://www.qianwen.com/?q=%s' },
             { label: 'Grok', urlTemplate: 'https://grok.com/?q=%s' },
             { label: 'Perplexity', urlTemplate: 'https://www.perplexity.ai/?q=%s' },
         ];
