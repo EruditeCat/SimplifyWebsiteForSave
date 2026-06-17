@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.32.1
+// @version         1.1.32.2
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1289,6 +1289,7 @@
 
                 let ele = document.querySelector("#Main");
                 Tools.RemoveAllSiblings(ele);
+                $('.adsbygoogle').remove();  // 删除google广告
                 $(".fr").remove(); // 删除楼主的头像
                 $(".header > h1").siblings().remove(); // 标题上不需要的元素都删了
                 $(".cell > table > tbody > tr > td:nth-of-type(1)").remove(); // 删除每个回复者的头像
