@@ -2,11 +2,10 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.33.0
+// @version         1.1.34.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
-// @require         http://code.jquery.com/jquery-1.11.0.min.js
 // @grant           GM_registerMenuCommand
 // @run-at          document-end
 // ==/UserScript==]
@@ -608,8 +607,15 @@
         static RemoveAllSiblings(el, includeParentsSiblings = true) {
             if(el==undefined) return;
             do {
-                $(el).siblings(':not(style, link)').remove()
-                el = el.parentElement ? el.parentElement : undefined;
+                let parent = el.parentElement;
+                if (parent) {
+                    Array.from(parent.children).forEach((child) => {
+                        if (child !== el && child.tagName !== "STYLE" && child.tagName !== "LINK") {
+                            child.remove();
+                        }
+                    });
+                }
+                el = parent ? parent : undefined;
             } while (includeParentsSiblings && el && el !== document.body)
         }
 
@@ -622,10 +628,8 @@
         static MakeBackgroundWhite(el) {
             if(el==undefined) return;
             do {
-                //$(el).css({"background-color":'white' })
-                $(el).css("background-image", "none");
-                $(el).css('background-color', 'white')
-                //el.style.backgroundColor  = "white";
+                el.style.backgroundImage = "none";
+                el.style.backgroundColor = "white";
                 el = el.parentElement ? el.parentElement : undefined;
             } while (el && el !== document.parentElement)
         }
@@ -634,7 +638,7 @@
         static SetContentCenterAndLarge(el) {
             if(el==undefined) return;
             do {
-                $(el).css({
+                Tools.SetStyles(el, {
                     "margin-left": '0px',
                     'margin-right': '0px',
                     'padding-left': '0px',
@@ -644,10 +648,10 @@
                     'width': '100%',
                     'max-width': 'none',
                     'display': 'block',
-                })
+                });
                 el = el.parentElement ? el.parentElement : undefined;
             } while (el && el !== document.body)
-            $(el).css({
+            Tools.SetStyles(el, {
                 "margin-left": '50px',
                 'margin-right': '50px',
                 'padding-left': '0px',
@@ -658,19 +662,80 @@
                 'max-width': 'none',
                 'overflow': 'auto',
                 'display': 'block',
-            })
+            });
+        }
+
+        static SetStyles(el, styles) {
+            if (!el || !styles) return;
+            Object.entries(styles).forEach(([key, value]) => {
+                if (value == null) return;
+                if (key.includes('-')) el.style.setProperty(key, value);
+                else el.style[key] = value;
+            });
+        }
+
+        static SetStylesForMatches(selector, styles, root = document) {
+            root.querySelectorAll(selector).forEach((el) => Tools.SetStyles(el, styles));
+        }
+
+        static RemoveMatches(selector, root = document) {
+            root.querySelectorAll(selector).forEach((el) => el.remove());
+        }
+
+        static CountMatches(selector, root = document) {
+            return root.querySelectorAll(selector).length;
+        }
+
+        static RemovePreviousElements(el, count = 1) {
+            let current = el;
+            for (let i = 0; i < count && current; i++) {
+                current = current.previousElementSibling;
+                if (current) current.remove();
+            }
+        }
+
+        static RemoveSiblingsOfMatches(selector, root = document) {
+            root.querySelectorAll(selector).forEach((el) => {
+                let parent = el.parentElement;
+                if (!parent) return;
+                Array.from(parent.children).forEach((child) => {
+                    if (child !== el) child.remove();
+                });
+            });
+        }
+
+        static GetMatchingAncestors(el, selector) {
+            let result = [];
+            let current = el?.parentElement;
+            while (current) {
+                if (current.matches(selector)) result.push(current);
+                current = current.parentElement;
+            }
+            return result;
+        }
+
+        static ElementMatches(el, selector) {
+            return !!(el && typeof el.matches === "function" && el.matches(selector));
+        }
+
+        static ElementHasDescendant(el, selector) {
+            return !!el?.querySelector(selector);
+        }
+
+        static CreateElement(tagName, className, parent) {
+            let el = document.createElement(tagName);
+            if (className) el.className = className;
+            if (parent) parent.appendChild(el);
+            return el;
         }
 
         static WriteStylesheet(css) {
-            let element = document.createElement('style');
-            element.type = 'text/css';
-            document.getElementsByTagName('head')[0].appendChild(element);
-
-            if (element.styleSheet) {
-                element.styleSheet.cssText = css; // IE
-            } else {
-                element.innerHTML = css; // Non-IE
-            }
+            const sheet = new CSSStyleSheet();
+            sheet.replaceSync(css);
+            document.adoptedStyleSheets = [
+                ...document.adoptedStyleSheets,
+                sheet
+            ];
         }
 
         // 把所有details元素设置为open状态
@@ -809,11 +874,10 @@
             let ele = document.getElementsByClassName("post")[0];
             Tools.RemoveAllSiblings(ele);
             // 删除id=blog_post_info_block
-            $("#blog_post_info_block").remove()
+            document.getElementById("blog_post_info_block")?.remove();
 
 
             // 改变id=mainContent的margin-left
-            //$("#mainContent").css("margin-left", "5px")
             // 删除所有背景
             Tools.MakeBackgroundWhite(ele)
             Tools.SetContentCenterAndLarge(ele)
@@ -863,12 +927,11 @@
                 // 清理class=post节点的所有sibling
                 Tools.RemoveAllSiblings(ele);
                 // 删除id=blog_post_info_block
-                $("#blog_post_info_block").remove()
-                $(".article-info-box").remove()
-                $("#blogColumnPayAdvert").remove()
+                document.getElementById("blog_post_info_block")?.remove();
+                Tools.RemoveMatches(".article-info-box");
+                document.getElementById("blogColumnPayAdvert")?.remove();
 
                 // 改变id=mainContent的margin-left
-                //$("#mainContent").css("margin-left", "5px")
                 // 删除所有背景
                 Tools.MakeBackgroundWhite(ele)
                 Tools.SetContentCenterAndLarge(ele)
@@ -1001,15 +1064,17 @@
         autoProcessHtml() {
 
             Tools.RemoveAllSiblings(document.getElementsByClassName("article-container")[0]);
-            $(".float-right").remove(); // 删除漂浮图片
-            $("#_MessageBoardctl00_MessageBoard").prev().prev().remove(); // 删除评论
-            $("#_MessageBoardctl00_MessageBoard").prev().remove(); // 删除评论
-            $("#_MessageBoardctl00_MessageBoard").remove(); // 删除评论
-            $("#ctl00_RateArticle_RatingTable").remove(); // 删除Rate评分
-            $(".share-list").prev().remove(); // 删除分享部分
-            $(".share-list").remove(); // 删除分享部分
-            $("p.small-text").remove(); // 删除底部无用信息
-            $("div.bottom-promo").remove(); // 删除底部无用信息
+            Tools.RemoveMatches(".float-right"); // 删除漂浮图片
+            let messageBoard = document.getElementById("_MessageBoardctl00_MessageBoard");
+            Tools.RemovePreviousElements(messageBoard, 2); // 删除评论
+            messageBoard?.remove(); // 删除评论
+            document.getElementById("ctl00_RateArticle_RatingTable")?.remove(); // 删除Rate评分
+            document.querySelectorAll(".share-list").forEach((el) => {
+                el.previousElementSibling?.remove(); // 删除分享部分
+                el.remove();
+            });
+            Tools.RemoveMatches("p.small-text"); // 删除底部无用信息
+            Tools.RemoveMatches("div.bottom-promo"); // 删除底部无用信息
             document.querySelectorAll("p img").forEach(x => {
                 let src = x.getAttribute("src");
                 if (src.startsWith("data:image/gif;base64")) {
@@ -1033,7 +1098,7 @@
             Tools.SetAllDetailsElemsOpen()
 
             Tools.SetContentCenterAndLarge(document.getElementsByClassName("article-container")[0])
-            $(document.getElementById("ctl00_confirmError")).remove();
+            document.getElementById("ctl00_confirmError")?.remove();
         }
     }
 
@@ -1059,20 +1124,19 @@
 
                 Tools.RemoveAllSiblings(document.getElementsByClassName("App-main")[0]);
                 Tools.SetContentCenterAndLarge(document.getElementsByClassName("App-main")[0])
-                $("div.Daily").remove();
-                $("div.DailyHeader-image").remove();
-                $("p.DailyHeader-imageSource").remove();
-                $("a.view-more").remove();
+                Tools.RemoveMatches("div.Daily");
+                Tools.RemoveMatches("div.DailyHeader-image");
+                Tools.RemoveMatches("p.DailyHeader-imageSource");
+                Tools.RemoveMatches("a.view-more");
 
-                $("header.DailyHeader").css({
+                Tools.SetStylesForMatches("header.DailyHeader", {
                     "background-color": "white",
                     "height": "0"
                 });
-                $("p.DailyHeader-title").css({
+                Tools.SetStylesForMatches("p.DailyHeader-title", {
                     "color": "black",
                     "bottom": "auto"
                 });
-                //$("header.DailyHeader").css("height", "none");
             }
 
         }
@@ -1134,7 +1198,7 @@
                 }
                 clearInterval(intervalCallBack);
 
-                $("#newsEditor").remove();
+                document.getElementById("newsEditor")?.remove();
             }
 
         }
@@ -1289,12 +1353,12 @@
 
                 let ele = document.querySelector("#Main");
                 Tools.RemoveAllSiblings(ele);
-                $('.adsbygoogle').remove();  // 删除google广告
-                $(".fr").remove(); // 删除楼主的头像
-                $(".header > h1").siblings().remove(); // 标题上不需要的元素都删了
-                $(".cell > table > tbody > tr > td:nth-of-type(1)").remove(); // 删除每个回复者的头像
-                $(".ago").remove(); // 删除每个回复的时间显示
-                $("#Main > div:last-of-type").remove(); // 删除页尾广告
+                Tools.RemoveMatches('.adsbygoogle');  // 删除google广告
+                Tools.RemoveMatches(".fr"); // 删除楼主的头像
+                Tools.RemoveSiblingsOfMatches(".header > h1"); // 标题上不需要的元素都删了
+                Tools.RemoveMatches(".cell > table > tbody > tr > td:nth-of-type(1)"); // 删除每个回复者的头像
+                Tools.RemoveMatches(".ago"); // 删除每个回复的时间显示
+                document.querySelector("#Main > div:last-of-type")?.remove(); // 删除页尾广告
 
                 // 增加楼号
                 let eles = document.querySelectorAll('[id^="r_"]')
@@ -1372,12 +1436,12 @@
 
                 let ele = document.querySelector(".left_content");
                 Tools.RemoveAllSiblings(ele);
-                $(".position-fixed, .text-center, .collection_thumb_left").remove();
-                $(".btn, .btn-secondary, .btn-block, .xn-back, .my-3, .mx-auto").remove();
-                $("div[isfirst='1'].message > p:last").remove();
-                $("#collection_thumb").remove();
-                $("#my-3").remove();
-                $("table.table.postlist.mb-0 > tbody > tr:last").remove();
+                Tools.RemoveMatches(".position-fixed, .text-center, .collection_thumb_left");
+                Tools.RemoveMatches(".btn, .btn-secondary, .btn-block, .xn-back, .my-3, .mx-auto");
+                document.querySelector("div[isfirst='1'].message > p:last-child")?.remove();
+                document.getElementById("collection_thumb")?.remove();
+                document.getElementById("my-3")?.remove();
+                document.querySelector("table.table.postlist.mb-0 > tbody > tr:last-child")?.remove();
 
                 Tools.SetContentCenterAndLarge(ele)
                 Tools.MakeBackgroundWhite(ele)
@@ -1400,26 +1464,34 @@
             let intervalCallBack = setInterval(_Simplify, 500);
 
             function _Simplify() {
-                if (document.readyState != "complete" || $("div.matrix-container>div>div[role=button]").length != 4) {
+                if (document.readyState != "complete" || Tools.CountMatches("div.matrix-container>div>div[role=button]") != 4) {
                     console.log("简化网页以存储：等待加载结束");
                     return;
                 }
                 clearInterval(intervalCallBack);
-                $("div.matrix-container>div.wrapperInner_1OPls").css({gridTemplateRows : "repeat(3,minmax(185px,1fr))"})
-                $("div.matrix-container>div>div[role=button]:nth-child(1)").css({gridArea: "1 / 1 / 1 / 1"});  // 重要且紧急被覆盖
-                $("div.matrix-container>div>div[role=button]:nth-child(2)").css({gridArea: "1 / 2 / 4 / 2"})   // 重要不紧急占据整个第2列
-                $("div.matrix-container>div>div[role=button]:nth-child(3)").css({gridArea: "1 / 1 / 2 / 1"})   // 不重要紧急占一行
-                $("div.matrix-container>div>div[role=button]:nth-child(4)").css({gridArea: "2 / 1 / 4 / 1"})   // 不重要不紧急占二行
-                $("span.duedate-today").parents('li').css({backgroundColor: "#ff000052"})                      // “今天”底色高亮
+                Tools.SetStylesForMatches("div.matrix-container>div.wrapperInner_1OPls", {gridTemplateRows : "repeat(3,minmax(185px,1fr))"});
+                Tools.SetStylesForMatches("div.matrix-container>div>div[role=button]:nth-child(1)", {gridArea: "1 / 1 / 1 / 1"});  // 重要且紧急被覆盖
+                Tools.SetStylesForMatches("div.matrix-container>div>div[role=button]:nth-child(2)", {gridArea: "1 / 2 / 4 / 2"});   // 重要不紧急占据整个第2列
+                Tools.SetStylesForMatches("div.matrix-container>div>div[role=button]:nth-child(3)", {gridArea: "1 / 1 / 2 / 1"});   // 不重要紧急占一行
+                Tools.SetStylesForMatches("div.matrix-container>div>div[role=button]:nth-child(4)", {gridArea: "2 / 1 / 4 / 1"});   // 不重要不紧急占二行
+                document.querySelectorAll("span.duedate-today").forEach((el) => {
+                    Tools.GetMatchingAncestors(el, "li").forEach((li) => {
+                        li.style.backgroundColor = "#ff000052";
+                    });
+                });
 
 
                 // ↓↓↓↓↓↓↓↓↓↓↓↓↓监视变化↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
                 let divObserve = document.getElementsByClassName('matrix-container')[0];
                 Tools.ObserveDOM(divObserve, function(m){
-                    $("span.project-hint").parents('li').each(function(){
-                        $(this).css({backgroundColor: "white"})
-                        $(this).has('span.duedate-today').css({backgroundColor: "#ff000052"})
-                    })
+                    document.querySelectorAll("span.project-hint").forEach((hint) => {
+                        Tools.GetMatchingAncestors(hint, "li").forEach((li) => {
+                            li.style.backgroundColor = "white";
+                            if (Tools.ElementHasDescendant(li, "span.duedate-today")) {
+                                li.style.backgroundColor = "#ff000052";
+                            }
+                        });
+                    });
                 })
             }
         }
@@ -1805,17 +1877,13 @@
         }
 
         _createOutlineElements() {
-            this.self.elements.label = jQuery('<div></div>').addClass(this.self.opts.namespace + '_label').appendTo('body');
-            //this.self.elements.top = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
-            //this.self.elements.bottom = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
-            //this.self.elements.left = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
-            //this.self.elements.right = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
-            this.self.elements.body = jQuery('<div></div>').addClass(this.self.opts.namespace).appendTo('body');
+            this.self.elements.label = Tools.CreateElement("div", this.self.opts.namespace + '_label', document.body);
+            this.self.elements.body = Tools.CreateElement("div", this.self.opts.namespace, document.body);
         }
 
         _removeOutlineElements() {
-            jQuery.each(this.self.elements, function (name, element) {
-                element.remove();
+            Object.values(this.self.elements).forEach((element) => {
+                element?.remove?.();
             });
         }
 
@@ -1825,16 +1893,13 @@
                 label += '#' + element.id;
             }
             if (element.className) {
-                label += ('.' + jQuery.trim(element.className).replace(/ /g, '.')).replace(/\.\.+/g, '.');
+                label += ('.' + String(element.className).trim().replace(/ /g, '.')).replace(/\.\.+/g, '.');
             }
             return label + ' (' + Math.round(width) + 'x' + Math.round(height) + ')';
         }
 
         _getScrollTop() {
-            if (!this.self.elements.window) {
-                this.self.elements.window = jQuery(window);
-            }
-            return this.self.elements.window.scrollTop();
+            return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
         }
 
         _updateOutlinePosition(e) {
@@ -1850,7 +1915,7 @@
             }
             if (this.pub.element === undefined) return;
             if (this.self.opts.filter) {
-                if (!jQuery(this.pub.element).is(this.self.opts.filter)) {
+                if (!Tools.ElementMatches(this.pub.element, this.self.opts.filter)) {
                     return;
                 }
             }
@@ -1868,15 +1933,16 @@
             let label_top = Math.max(0, top - 20 - b, scroll_top);
             let label_left = Math.max(0, pos.left - b);
 
-            this.self.elements.label.css({
-                top: label_top,
-                left: label_left
-            }).text(label_text);
-            this.self.elements.body.css({
-                top: top - b,
-                left: pos.left,
-                width: pos.width,
-                height: pos.height
+            Tools.SetStyles(this.self.elements.label, {
+                top: label_top + "px",
+                left: label_left + "px"
+            });
+            this.self.elements.label.textContent = label_text;
+            Tools.SetStyles(this.self.elements.body, {
+                top: (top - b) + "px",
+                left: pos.left + "px",
+                width: pos.width + "px",
+                height: pos.height + "px"
             });
         }
 
@@ -1924,7 +1990,7 @@
 
         onClick(e, bStop = true) {
             if (this.self.opts.filter) {
-                if (!jQuery(e.target).is(this.self.opts.filter)) {
+                if (!Tools.ElementMatches(e.target, this.self.opts.filter)) {
                     return false;
                 }
             }
@@ -2019,15 +2085,20 @@
         }
 
         _createOutlineElements() {
-            this.self.elements.body = jQuery('<div></div>').addClass(this.self.opts.namespace).css('position', 'absolute').css('left', '0').css('top', '0').appendTo('body');
-            this.self.elements.canvas = jQuery('<canvas></canvas>').addClass(this.self.opts.namespace + '_canvas').appendTo(this.self.elements.body);
-            this.self.context = this.self.elements.canvas.get(0).getContext('2d');
+            this.self.elements.body = Tools.CreateElement("div", this.self.opts.namespace, document.body);
+            Tools.SetStyles(this.self.elements.body, {
+                position: "absolute",
+                left: "0",
+                top: "0"
+            });
+            this.self.elements.canvas = Tools.CreateElement("canvas", this.self.opts.namespace + '_canvas', this.self.elements.body);
+            this.self.context = this.self.elements.canvas.getContext('2d');
 
         }
 
         _removeOutlineElements() {
-            jQuery.each(this.self.elements, function (name, element) {
-                element.remove();
+            Object.values(this.self.elements).forEach((element) => {
+                element?.remove?.();
             });
         }
 
@@ -2239,7 +2310,7 @@
     if (pattern) pattern.autoProcessHtml();
 
     // 注册键盘消息
-    $('[accesskey]').attr('accesskey','');  // 禁用所有的accesskey，以免和hotkey冲突
+    document.querySelectorAll('[accesskey]').forEach((el) => el.setAttribute('accesskey', ''));  // 禁用所有的accesskey，以免和hotkey冲突
     hotkeys('alt+q,alt+w,alt+z,alt+a,alt+s,alt+x,ctrl+`', 'all', function (event, handler) {
         switch (handler.key) {
             case "alt+q":
