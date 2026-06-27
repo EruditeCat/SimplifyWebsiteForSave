@@ -2,7 +2,7 @@
 // @name            简化网站以存储2
 // @namespace       https://github.com/EruditeCat/SimplifyWebsiteForSave/tree/master
 // @description     重写的简化网站以存储
-// @version         1.1.32.2
+// @version         1.1.33.0
 // @author          EruditePig
 // @include         *
 ///////// @exclude         file://*
@@ -1427,7 +1427,7 @@
 
 	// 南华早报
 	class Scmp extends BasePattern{
-		
+
         constructor() {
             super();
         }
@@ -1435,7 +1435,7 @@
         static IsMatch() {
             return window.location.href.search(/https:\/\/www\.scmp\.com\/.*/) == 0;
         }
-		
+
         autoProcessHtml() {
 
             let intervalCallBack = setInterval(_Simplify, 500);
@@ -1446,7 +1446,7 @@
                     return;
                 }
                 clearInterval(intervalCallBack);
-				
+
                 document.querySelectorAll('[data-qa="OpinionArticle-WidgetsBottom"]').forEach(x => x.remove())
 				document.querySelectorAll('[data-qa="OpinionArticle-Left"]').forEach(x => x.remove())
                 document.querySelectorAll('[data-qa="GeneralArticle-WidgetsBottom"]').forEach(x => x.remove())
@@ -1459,7 +1459,7 @@
 
 	// 半岛
 	class Aljazeera extends BasePattern{
-		
+
         constructor() {
             super();
         }
@@ -1467,7 +1467,7 @@
         static IsMatch() {
             return window.location.href.search(/https:\/\/www\.aljazeera\.com\/.*/) == 0;
         }
-		
+
         autoProcessHtml() {
 
             let intervalCallBack = setInterval(_Simplify, 500);
@@ -1479,16 +1479,243 @@
                 }
                 clearInterval(intervalCallBack);
 				console.log("简化网页以存储：开始简化");
-				
+
                 document.querySelectorAll('[class="more-on"]').forEach(x => x.remove())
                 document.querySelectorAll('[class="video-player-facade-container"]').forEach(x => x.remove())
 				document.querySelectorAll('[id="article-newsletter-slot"]').forEach(x => x.remove())
-				
+
 				console.log("简化网页以存储：结束简化");
             }
         }
 	}
 
+
+    class ChatGPT extends BasePattern {
+        constructor() {
+            super();
+        }
+
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/chatgpt\.com\/.*/) == 0;
+        }
+
+        /// 处理流程：
+        /// 1. 清理页面：移除不参与导出的固定浮层、边栏等冗余元素
+        /// 2. 缓存已加载对话：遍历所有带 data-turn-id-container 属性的会话节点，直接克隆缓存已加载真实内容的节点
+        /// 3. 懒加载未完成节点：对虚拟列表中的空占位节点，通过 scrollIntoView() 逐个滚动到视口触发懒加载，等待内容挂载后完成缓存
+        /// 4. 循环收尾：重复加载流程直到所有会话节点都完成快照缓存
+        /// 5. 静态化页面：用缓存的完整节点替换原页面的占位节点，将动态会话转为静态内容，支持浏览器扩展稳定保存整页
+        async manualProcessHtml() {
+            const REMOVE_ACTIONS = [
+                () => document.getElementsByClassName("fixed top-1/2 z-20 -translate-y-1/2 inset-e-4")[0]?.remove(),
+                () => document.getElementById("stage-slideover-sidebar")?.remove(),
+                () => document.getElementById("page-header")?.remove(),
+                () => document.getElementById("thread-bottom-container")?.remove()
+            ];
+
+            const CONTAINER_SELECTOR = 'div[data-turn-id-container]';
+            const SECTION_SELECTOR = 'section[data-turn-id]';
+
+            const state = {
+                cache: new Map(),
+                maxRounds: 10,
+                scrollWaitMs: 1000,
+                settleWaitMs: 350,
+                perTurnTimeoutMs: 5000
+            };
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            function removeExtraElements() {
+                for (const fn of REMOVE_ACTIONS) {
+                try {
+                    fn();
+                } catch (err) {
+                    console.warn("[turn-cache] remove failed:", err);
+                }
+                }
+            }
+
+            function getContainers() {
+                return Array.from(document.querySelectorAll(CONTAINER_SELECTOR));
+            }
+
+            function getTurnId(container) {
+                if (!container || container.nodeType !== 1) return null;
+                return (
+                container.getAttribute("data-turn-id-container") ||
+                container.querySelector(SECTION_SELECTOR)?.getAttribute("data-turn-id") ||
+                null
+                );
+            }
+
+            function getSection(container) {
+                return container?.querySelector?.(SECTION_SELECTOR) || null;
+            }
+
+            function hasMeaningfulContent(section) {
+                if (!section) return false;
+                if (section.querySelector("[data-message-author-role]")) return true;
+                if (section.querySelector("[data-conversation-screenshot-content]")) return true;
+                if (section.children.length > 0) return true;
+                if ((section.textContent || "").trim()) return true;
+                return false;
+            }
+
+            function isLoadedTurn(container) {
+                const section = getSection(container);
+                if (!section) return false;
+                if (hasMeaningfulContent(section)) return true;
+                return false;
+            }
+
+            function snapshotTurn(container) {
+                const turnId = getTurnId(container);
+                if (!turnId) return false;
+                if (!isLoadedTurn(container)) return false;
+
+                state.cache.set(turnId, container.cloneNode(true));
+                return true;
+            }
+
+            function collectVisibleTurns() {
+                let added = 0;
+                for (const container of getContainers()) {
+                const turnId = getTurnId(container);
+                if (!turnId) continue;
+                const had = state.cache.has(turnId);
+                const ok = snapshotTurn(container);
+                if (ok && !had) added++;
+                }
+                return added;
+            }
+
+            function getAllTurnIds() {
+                const ids = [];
+                for (const container of getContainers()) {
+                const turnId = getTurnId(container);
+                if (turnId) ids.push(turnId);
+                }
+                return ids;
+            }
+
+            function getMissingTurnIds() {
+                return getAllTurnIds().filter(id => !state.cache.has(id));
+            }
+
+            function findContainerByTurnId(turnId) {
+                return document.querySelector(
+                `${CONTAINER_SELECTOR}[data-turn-id-container="${CSS.escape(turnId)}"]`
+                );
+            }
+
+            async function waitUntilLoaded(turnId, timeoutMs) {
+                const start = Date.now();
+                while (Date.now() - start < timeoutMs) {
+                const container = findContainerByTurnId(turnId);
+                if (container) {
+                    snapshotTurn(container);
+                    if (state.cache.has(turnId)) return true;
+                }
+                await sleep(120);
+                }
+                return false;
+            }
+
+            async function focusAndLoadTurn(turnId) {
+                const container = findContainerByTurnId(turnId);
+                if (!container) return false;
+
+                container.scrollIntoView({
+                block: "center",
+                inline: "nearest",
+                behavior: "auto"
+                });
+
+                await sleep(state.scrollWaitMs);
+                collectVisibleTurns();
+
+                if (state.cache.has(turnId)) return true;
+
+                const ok = await waitUntilLoaded(turnId, state.perTurnTimeoutMs);
+                await sleep(state.settleWaitMs);
+
+                const containerAfter = findContainerByTurnId(turnId);
+                if (containerAfter) snapshotTurn(containerAfter);
+
+                return ok || state.cache.has(turnId);
+            }
+
+            function patchAllTurns() {
+                let replaced = 0;
+                for (const container of getContainers()) {
+                const turnId = getTurnId(container);
+                if (!turnId) continue;
+
+                const cachedNode = state.cache.get(turnId);
+                if (!cachedNode) continue;
+
+                const replacement = cachedNode.cloneNode(true);
+                replacement.setAttribute("data-is-intersecting", "true");
+
+                if (container.outerHTML !== replacement.outerHTML) {
+                    container.replaceWith(replacement);
+                    replaced++;
+                }
+                }
+                return replaced;
+            }
+
+            removeExtraElements();
+            collectVisibleTurns();
+
+            for (let round = 1; round <= state.maxRounds; round++) {
+                let missingIds = getMissingTurnIds();
+                console.log(`[turn-cache] round ${round}: cached ${state.cache.size}/${state.cache.size + missingIds.length}`);
+
+                if (missingIds.length === 0) break;
+
+                for (const turnId of missingIds) {
+                console.log(`[turn-cache] loading ${turnId}`);
+                await focusAndLoadTurn(turnId);
+                }
+
+                collectVisibleTurns();
+                await sleep(500);
+
+                missingIds = getMissingTurnIds();
+                if (missingIds.length === 0) break;
+            }
+
+            const missingIds = getMissingTurnIds();
+            if (missingIds.length > 0) {
+                alert(`还有 ${missingIds.length} 个 turn 没缓存到，建议再执行一次函数。\n可在控制台查看：`, missingIds);
+                console.log("[turn-cache] missing turn ids:", missingIds);
+                return;
+            }
+
+            const replaced = patchAllTurns();
+            console.log(`[turn-cache] done, cached ${state.cache.size} turns, replaced ${replaced} turns`);
+            alert(`全部 turn 已缓存并替换完成，共 ${state.cache.size} 个。现在可以用扩展保存页面了。`);
+        }
+    }
+
+    class Gemini extends BasePattern {
+        constructor() {
+            super();
+        }
+        static IsMatch() {
+            return window.location.href.search(/https:\/\/gemini\.google\.com\/.*/) == 0;
+        }
+        manualProcessHtml() {
+            document.querySelector("input-container").remove()
+            document.querySelector("bard-sidenav").remove()
+            document.querySelector("top-bar-actions").remove()
+            document.querySelector('div[data-test-id="chat-app"]').remove()
+        }
+    }
 
     // 根据各种特征判断当前网页符合哪个Pattern
     function matchAutoPattern() {
@@ -1980,7 +2207,7 @@
 
     // 延迟，靠手动点击快捷键触发简化页面
     function delayAutoSimplifyElem() {
-        let classes = [WuAiPoJie, SMZDM];
+        let classes = [WuAiPoJie, SMZDM, ChatGPT, Gemini];
         for (let i = 0; i < classes.length; i++) {
             const patternClass = classes[i];
             if (patternClass.IsMatch()) {
@@ -1989,22 +2216,6 @@
         }
     }
 
-    // 这个特性需要和插件SmartToc配合，它负责添加toc，脚本负责在singleFile保存的本地html中添加js
-    function addTocJumpScript() {
-        const script = document.createElement("script");
-        script.textContent = `
-  let tocEle = document.querySelector('#smarttoc');
-  if (tocEle != undefined) {
-    addEventListener('click', function(e){
-      let ele = e.target;
-      if (ele.hasAttribute('data-index')){
-        let targetEle = document.querySelector('[data-id="heading-' + ele.getAttribute('data-index') + '"]');
-        if (targetEle!=undefined)   targetEle.scrollIntoView();
-      }
-  })}
-  `;
-        document.body.appendChild(script);
-    }
 
     // 编辑网页
     function editHtml() {
@@ -2046,10 +2257,6 @@
             case "alt+a":
                 Tools.ShowHotkeyToast("Alt+A：手动触发简化");
                 delayAutoSimplifyElem();
-                break;
-            case "alt+s":
-                Tools.ShowHotkeyToast("Alt+S：添加目录跳转脚本");
-                addTocJumpScript();
                 break;
             case "alt+x":
                 Tools.ShowHotkeyToast("Alt+X：进入编辑（Alt+X退出）");
